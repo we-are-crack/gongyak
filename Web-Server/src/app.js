@@ -2,13 +2,18 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 import rootRouter from './rootRouter.js';
 
 const app = express();
 const logger = morgan('dev');
 
-app.set('views', process.cwd() + '/src/views');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use(express.static(path.join(__dirname, 'client'))); // 정적 파일 제공
+
 app.use(helmet()); // 보안 모듈
 app.use(logger); // 로그 관리 모듈
 app.use(express.json()); // request body parsing
