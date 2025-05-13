@@ -1,85 +1,81 @@
-const candidates = [
-  {
-    name: '후보자 A',
-    pledges: {
-      경제: '소상공인 지원 확대 및 세금 감면',
-      교육: '무상 교육 확대 및 대학 등록금 지원',
-      의료: '공공의료 강화 및 건강보험 확대',
-    },
-  },
-  {
-    name: '후보자 B',
-    pledges: {
-      경제: '대기업 규제 강화 및 중소기업 육성',
-      교육: '직업 교육 강화 및 평생 교육 지원',
-      의료: '민간 의료 활성화 및 의료비 절감',
-    },
-  },
-  {
-    name: '후보자 C',
-    pledges: {
-      경제: '스타트업 지원 및 벤처 투자 확대',
-      교육: '디지털 교육 혁신 및 코딩 교육 의무화',
-      의료: '원격 의료 확대 및 스마트 헬스케어 도입',
-    },
-  },
-];
+// 검색 결과를 초기화하는 함수
+const resetResults = results => {
+  results.querySelector('#loading')?.remove();
+  results.querySelector('.text-red-500')?.remove();
+};
 
-const search = inputId => {
+// 로딩 상태를 표시하는 함수
+const showLoading = results => {
+  const loadingTemplate = document.getElementById('loadingTemplate').content.cloneNode(true);
+  results.appendChild(loadingTemplate);
+};
+
+// 검색 결과를 렌더링하는 함수
+const renderResults = (results, htmlData, append = false) => {
+  if (append) {
+    results.innerHTML += htmlData; // 기존 결과에 추가
+  } else {
+    results.innerHTML = htmlData; // 기존 결과를 덮어씀
+  }
+};
+
+// 검색 창을 다시 표시하는 함수
+const showSearchBox = initialBox => {
+  initialBox.classList.remove('hidden');
+};
+
+// 검색 기능
+const search = async (inputId, append = false) => {
   const input = document.getElementById(inputId).value.trim().toLowerCase();
   if (!input) {
-    // 빈 값일 경우 검색 실행 중단
-    alert('검색어를 입력해주세요.');
+    const results = document.getElementById('results');
+    showTemplate('errorTemplate', results);
     return;
   }
 
   const results = document.getElementById('results');
   const initialBox = document.getElementById('initialSearchBox');
 
-  // 기존 로딩 및 오류 메시지 제거
-  results.querySelector('#loading')?.remove();
-  results.querySelector('.text-red-500')?.remove();
-
-  const loading = document.getElementById('loadingTemplate').content.cloneNode(true);
-  results.appendChild(loading);
+  if (!append) resetResults(results); // 기존 결과 초기화 (append가 false일 때만)
+  showLoading(results); // 로딩 상태 표시
   if (inputId === 'searchInput') initialBox.classList.add('hidden');
 
-  setTimeout(() => {
-    document.getElementById('loading')?.remove();
-    const comparison = document.getElementById('comparisonTemplate').content.cloneNode(true);
-    comparison.querySelector('h3').textContent = input.charAt(0).toUpperCase() + input.slice(1) + ' 공약 비교';
-    const columns = comparison.querySelectorAll('.candidate-column');
-    candidates.forEach(({ pledges }, i) => {
-      columns[i].querySelector('p').textContent = pledges[input] || '-';
-    });
+  try {
+    const response = await fetch('/test'); // API 호출
+    if (!response.ok) throw new Error('공약 데이터를 불러오지 못했습니다.');
 
-    if (Array.from(columns).some(col => col.querySelector('p').textContent !== '-')) {
-      results.appendChild(comparison);
-    } else {
-      results.appendChild(document.getElementById('noResultsTemplate').content.cloneNode(true));
+    const htmlData = await response.text(); // HTML 데이터 가져오기
+    document.getElementById('loading')?.remove();
+
+    // AI 서버에서 빈 문자열이 반환된 경우 안내 메시지 표시
+    if (!htmlData.trim()) {
+      alert('검색 결과를 불러오지 못했습니다. 잠시 후 다시 시도하거나, 다른 검색어로 시도해보세요.');
     }
 
-    appendReSearch(results);
-  }, 1000);
+    renderResults(results, htmlData, append); // 결과 렌더링
+    appendReSearch(results); // 재검색 창 추가
+  } catch (error) {
+    console.error('Search Error:', error);
+    document.getElementById('loading')?.remove(); // 로딩 상태 제거
+    alert('검색 결과를 불러오지 못했습니다. 잠시 후 다시 시도하거나, 다른 검색어로 시도해보세요.');
+    renderResults(results, htmlData, append); // 결과 렌더링
+    appendReSearch(results); // 재검색 창 추가
+  }
 };
 
+// 재검색 창 추가
 const appendReSearch = results => {
-  // 기존 검색창 제거
   const existingReSearch = results.querySelector('.re-search');
-  if (existingReSearch) {
-    existingReSearch.remove();
-  }
+  if (existingReSearch) existingReSearch.remove();
 
-  // 새로운 검색창 추가
   const reSearchTemplate = document.getElementById('reSearchTemplate').content.cloneNode(true);
   results.appendChild(reSearchTemplate);
 
-  // 검색 버튼에 이벤트 리스너 추가
   const reSearchButton = results.querySelector('#reSearchButton');
-  reSearchButton.addEventListener('click', () => search('reSearchInput'));
+  reSearchButton.addEventListener('click', () => search('reSearchInput', true)); // append를 true로 설정
 };
 
+// 초기화
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('searchButton').addEventListener('click', () => search('searchInput'));
-  // reSearchButton 이벤트 리스너는 appendReSearch 함수에서 동적으로 추가됩니다.
 });
