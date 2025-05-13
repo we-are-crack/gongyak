@@ -14,14 +14,17 @@ export const home = (req, res) => {
 export const fetchPledges = async (req, res) => {
   try {
     const response = await fetch('http://localhost:4000/ai');
+
     if (!response.ok) {
       throw new Error(`AI 서버 응답 오류: ${response.status}`);
     }
-    const htmlData = await response.text();
-    res.set('Content-Type', 'text/html; charset=utf-8');
-    res.status(200).send(htmlData);
+
+    const data = await response.json();
+
+    res.set('Content-Type', 'application/json; charset=utf-8');
+    res.status(200).json(data);
   } catch (error) {
     console.error('fetchPledges Error:', error);
-    res.status(200).send('');
+    res.status(500).json({ status: 'error', htmlData: '' });
   }
 };

@@ -19,6 +19,19 @@ const renderResults = (results, htmlData, append = false) => {
   }
 };
 
+// 템플릿을 적용해서 렌더링하는 함수
+const renderTemplate = (templateId, container, append = false) => {
+  const template = document.getElementById(templateId);
+  if (template) {
+    if (append) {
+      container.appendChild(template.content.cloneNode(true));
+    } else {
+      container.innerHTML = '';
+      container.appendChild(template.content.cloneNode(true));
+    }
+  }
+};
+
 // 검색 창을 다시 표시하는 함수
 const showSearchBox = initialBox => {
   initialBox.classList.remove('hidden');
@@ -28,37 +41,43 @@ const showSearchBox = initialBox => {
 const search = async (inputId, append = false) => {
   const input = document.getElementById(inputId).value.trim().toLowerCase();
   if (!input) {
-    const results = document.getElementById('results');
-    showTemplate('errorTemplate', results);
+    alert('검색어를 입력해주세요.');
     return;
   }
 
   const results = document.getElementById('results');
   const initialBox = document.getElementById('initialSearchBox');
 
-  if (!append) resetResults(results); // 기존 결과 초기화 (append가 false일 때만)
   showLoading(results); // 로딩 상태 표시
   if (inputId === 'searchInput') initialBox.classList.add('hidden');
 
   try {
     const response = await fetch('/test'); // API 호출
-    if (!response.ok) throw new Error('공약 데이터를 불러오지 못했습니다.');
 
-    const htmlData = await response.text(); // HTML 데이터 가져오기
+    if (!response.ok) throw new Error('API 호출 오류');
+
+    // 서버에서 JSON으로 상태를 받음
+    const data = await response.json();
     document.getElementById('loading')?.remove();
 
-    // AI 서버에서 빈 문자열이 반환된 경우 안내 메시지 표시
-    if (!htmlData.trim()) {
+    if (data.status === 'invalid') {
+      alert('대선 공약과 관련된 내용만 검색해 주세요.');
+      // 결과 영역은 그대로 두고, 재검색 창만 추가
+      appendReSearch(results);
+      return;
+    } else if (data.status === 'error') {
       alert('검색 결과를 불러오지 못했습니다. 잠시 후 다시 시도하거나, 다른 검색어로 시도해보세요.');
+      appendReSearch(results);
+      return;
+    } else {
+      // 정상 데이터라면 htmlData로 렌더링
+      renderResults(results, data.htmlData, append);
+      appendReSearch(results); // 재검색 창 추가
     }
-
-    renderResults(results, htmlData, append); // 결과 렌더링
-    appendReSearch(results); // 재검색 창 추가
   } catch (error) {
-    console.error('Search Error:', error);
+    console.error(error);
     document.getElementById('loading')?.remove(); // 로딩 상태 제거
     alert('검색 결과를 불러오지 못했습니다. 잠시 후 다시 시도하거나, 다른 검색어로 시도해보세요.');
-    renderResults(results, htmlData, append); // 결과 렌더링
     appendReSearch(results); // 재검색 창 추가
   }
 };
