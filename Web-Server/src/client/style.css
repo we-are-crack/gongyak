@@ -160,27 +160,27 @@ p {
 }
 
 /* 후보자별 대표 색상 */
-.candidate-card.candidate-1 {
+.candidate-card.theminjoo {
   border-color: #111d6a;
 }
-.candidate-card.candidate-1 .main-pledge,
-.candidate-card.candidate-1 h2 {
+.candidate-card.theminjoo .main-pledge,
+.candidate-card.theminjoo h2 {
   color: #111d6a;
 }
 
-.candidate-card.candidate-2 {
+.candidate-card.peoplepowerparty {
   border-color: #b91c1c;
 }
-.candidate-card.candidate-2 .main-pledge,
-.candidate-card.candidate-2 h2 {
+.candidate-card.peoplepowerparty .main-pledge,
+.candidate-card.peoplepowerparty h2 {
   color: #b91c1c;
 }
 
-.candidate-card.candidate-3 {
+.candidate-card.reformparty {
   border-color: #c25000;
 }
-.candidate-card.candidate-3 .main-pledge,
-.candidate-card.candidate-3 h2 {
+.candidate-card.reformparty .main-pledge,
+.candidate-card.reformparty h2 {
   color: #c25000;
 }
 
@@ -196,6 +196,7 @@ p {
     transform 0.18s,
     box-shadow 0.18s;
   text-align: left;
+  position: relative; /* 미리보기의 absolute 위치 기준이 되도록 추가 */
 }
 
 .candidate-card:hover {
@@ -211,14 +212,15 @@ p {
 }
 
 .candidate-photo {
-  width: 54px;
-  height: 54px;
+  width: 45px;
+  height: 60px; /* 3:4 비율 (예: 45x60) */
   object-fit: cover;
-  border-radius: 50%;
+  border-radius: 0.4rem; /* 살짝만 둥글게 */
   border: 2px solid #ede9fe;
   display: block;
   box-shadow: 0 2px 8px rgba(124, 58, 237, 0.09);
   margin-bottom: 0;
+  background: #fff;
 }
 
 .candidate-card h2 {
@@ -307,21 +309,21 @@ p {
   left: 100%;
   top: 50%;
   transform: translateY(-50%) translateX(12px);
-  z-index: 10;
+  z-index: 1000; /* z-index를 충분히 높게 */
   background: #fff;
   border: 1.5px solid #e9d5ff;
   border-radius: 0.5rem;
   box-shadow: 0 4px 16px rgba(124, 58, 237, 0.13);
   padding: 0.3rem;
-  min-width: 80px;
-  min-height: 60px;
+  min-width: 520px;
+  min-height: 390px;
 }
 
 .refimg-preview img {
   display: block;
-  width: 120px;
+  width: 780px;
   height: auto;
-  max-height: 90px;
+  max-height: 585px;
   object-fit: contain;
   border-radius: 0.4rem;
 }
@@ -387,17 +389,17 @@ p {
   display: inline-block;
 }
 
-.summary-cand-1 {
+.summary-cand-theminjoo {
   background: #111d6a;
   color: #fff;
 }
 
-.summary-cand-2 {
+.summary-cand-peoplepowerparty {
   background: #b91c1c;
   color: #fff;
 }
 
-.summary-cand-3 {
+.summary-cand-reformparty {
   background: #c25000;
   color: #fff;
 }

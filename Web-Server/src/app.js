@@ -14,7 +14,23 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, 'client'))); // 정적 파일 제공
 
-app.use(helmet()); // 보안 모듈
+// helmet 설정에서 img-src에 외부 도메인 추가
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net', 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://cdn.jsdelivr.net', 'https://fonts.gstatic.com'],
+        imgSrc: ["'self'", 'data:', 'https://storage.googleapis.com', 'https://i.namu.wiki'],
+        connectSrc: ["'self'"],
+        // ...필요시 추가...
+      },
+    },
+  }),
+);
+
 app.use(logger); // 로그 관리 모듈
 app.use(express.json()); // request body parsing
 app.use(express.urlencoded({ extended: true })); // url query prameter parsing

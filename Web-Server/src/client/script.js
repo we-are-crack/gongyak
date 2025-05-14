@@ -10,12 +10,23 @@ const showLoading = results => {
   results.appendChild(loadingTemplate);
 };
 
-// 검색 결과를 렌더링하는 함수
-const renderResults = (results, htmlData, append = false) => {
+// 검색 결과를 렌더링하는 함수 (검색어와 htmlData를 함께 렌더링)
+const renderResults = (results, searchKeyword, htmlData, append = false) => {
+  // 검색어 템플릿을 복제해서 값만 채움
+  const keywordTemplate = document.getElementById('searchKeywordTemplate');
+  let keywordNode = null;
+  if (keywordTemplate) {
+    keywordNode = keywordTemplate.content.cloneNode(true);
+    const valueSpan = keywordNode.querySelector('.search-keyword-value');
+    if (valueSpan) valueSpan.textContent = searchKeyword;
+  }
   if (append) {
-    results.innerHTML += htmlData; // 기존 결과에 추가
+    if (keywordNode) results.appendChild(keywordNode);
+    results.innerHTML += htmlData;
   } else {
-    results.innerHTML = htmlData; // 기존 결과를 덮어씀
+    results.innerHTML = '';
+    if (keywordNode) results.appendChild(keywordNode);
+    results.innerHTML += htmlData;
   }
 };
 
@@ -62,7 +73,6 @@ const search = async (inputId, append = false) => {
 
     if (data.status === 'invalid') {
       alert('대선 공약과 관련된 내용만 검색해 주세요.');
-      // 결과 영역은 그대로 두고, 재검색 창만 추가
       appendReSearch(results);
       return;
     } else if (data.status === 'error') {
@@ -70,8 +80,8 @@ const search = async (inputId, append = false) => {
       appendReSearch(results);
       return;
     } else {
-      // 정상 데이터라면 htmlData로 렌더링
-      renderResults(results, data.htmlData, append);
+      // 정상 데이터라면 검색어와 htmlData로 렌더링
+      renderResults(results, data.search, data.htmlData, append);
       appendReSearch(results); // 재검색 창 추가
     }
   } catch (error) {
