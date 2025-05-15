@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>공약21</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="script.js"></script>
+  </head>
+  <body class="bg-gradient-to-br from-purple-50 to-gray-100 min-h-screen flex items-center justify-center">
+    <div class="container max-w-5xl w-full px-20 py-20 flex flex-col items-center">
+      <!-- 로고/아이콘 -->
+      <div class="flex justify-center mb-4">
+        <svg class="w-14 h-14 text-purple-600" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 48 48">
+          <circle cx="24" cy="24" r="22" stroke="#7c3aed" stroke-width="3" fill="#ede9fe" />
+          <path d="M16 24h16M24 16v16" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" />
+        </svg>
+      </div>
+      <!-- 제목 -->
+      <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight leading-tight text-center">
+        21대 대선 <span class="text-purple-600">공약 비교</span> 서비스
+      </h1>
+      <p class="text-lg text-gray-600 mb-8 font-medium text-center flex flex-col gap-1">
+        <span>신뢰할 수 있는 AI가 각 후보자의 공식 정책 공약집을 바탕으로</span>
+        <span class="text-purple-700 font-semibold">쉽고 명확하게 비교해드립니다.</span>
+      </p>
+
+    <!-- 검색 창 -->
+    <div class="search-box flex justify-center mb-8 w-full" id="initialSearchBox">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="예: 청년 주거 정책이 궁금해요"
+        class="p-4 w-full max-w-md rounded-l-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-lg shadow-sm transition" />
+      <button
+        id="searchButton"
+        class="p-4 bg-purple-600 text-white rounded-r-xl hover:bg-purple-700 flex items-center gap-2 font-semibold transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" />
+          <path d="M21 21l-3.5-3.5" stroke="currentColor" stroke-linecap="round" />
+        </svg>
+        검색
+      </button>
+    </div>
+
+    <!-- 검색 결과 -->
+    <div id="results" class="results space-y-4 w-full">
+      <!-- 동적으로 생성된 콘텐츠가 여기에 렌더링됩니다 -->
+    </div>
+
+    <!-- 템플릿 정의: 컨테이너 외부로 이동 -->
+    <template id="loadingTemplate">
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <span>검색 중...</span>
+      </div>
+    </template>
+
+    <template id="errorTemplate">
+      <p class="text-red-500">검색어를 입력해주세요.</p>
+    </template>
+
+    <template id="noResultsTemplate">
+      <p class="text-red-500">해당 공약과 관련된 정보를 찾을 수 없습니다.</p>
+    </template>
+
+    <template id="reSearchTemplate">
+      <div class="re-search w-full flex flex-col items-center mt-8">
+        <p class="text-gray-600 mb-2 text-center">다시 검색하시겠습니까?</p>
+        <div class="search-box flex justify-center w-full">
+          <input
+            type="text"
+            id="reSearchInput"
+            placeholder="다른 공약 검색"
+            class="p-3 w-full max-w-md rounded-l-lg border border-gray-300 focus:outline-none" />
+          <button
+            id="reSearchButton"
+            class="p-3 bg-purple-500 text-white rounded-r-lg hover:bg-purple-600 flex items-center gap-2 font-semibold transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="7" stroke="currentColor" />
+              <path d="M21 21l-3.5-3.5" stroke="currentColor" stroke-linecap="round" />
+            </svg>
+            검색
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <template id="invalidSearchTemplate">
+      <p class="text-red-500">대선 공약과 관련된 내용만 검색해 주세요.</p>
+    </template>
+
+    <template id="searchKeywordTemplate">
+      <div class="search-keyword mb-4">
+        <span class="search-keyword-label font-semibold text-purple-700 mr-2">검색어</span>
+        <span class="search-keyword-value text-gray-800"></span>
+      </div>
+    </template>
+  </body>
+</html>

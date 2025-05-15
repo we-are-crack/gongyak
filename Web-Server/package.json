@@ -1,0 +1,29 @@
+{
+  "name": "gongyak21",
+  "version": "1.0.0",
+  "description": "21대 대통령 선거 공약 비교 서비스",
+  "license": "ISC",
+  "author": "on1ystar",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.0",
+    "node-fetch": "^3.3.2",
+    "pug": "^3.0.3"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-prettier": "^5.4.0"
+  }
+}
