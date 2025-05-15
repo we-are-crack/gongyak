@@ -1,4 +1,4 @@
-@import url('https://cdn.jsdelivr.net/gh/webfontworld/NanumSquare/NanumSquare.css');
+@import url('https://cdn.rawgit.com/moonspam/NanumSquare/master/nanumsquare.css');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
 
 body {
@@ -197,11 +197,18 @@ p {
     box-shadow 0.18s;
   text-align: left;
   position: relative; /* 미리보기의 absolute 위치 기준이 되도록 추가 */
+  overflow: visible; /* 미리보기 이미지가 카드 밖으로 나올 수 있게 추가 */
+  z-index: 1; /* 기본 z-index 추가 */
 }
 
 .candidate-card:hover {
   transform: translateY(-4px) scale(1.01);
   box-shadow: 0 8px 24px rgba(124, 58, 237, 0.13);
+  z-index: 10; /* 호버/포커스 시 위로 */
+}
+
+.candidate-card:focus-within {
+  z-index: 10; /* 호버/포커스 시 위로 */
 }
 
 .candidate-header {
@@ -315,8 +322,15 @@ p {
   border-radius: 0.5rem;
   box-shadow: 0 4px 16px rgba(124, 58, 237, 0.13);
   padding: 0.3rem;
-  min-width: 520px;
+  min-width: 500px;
   min-height: 390px;
+}
+
+/* 화면 오른쪽을 벗어날 때 왼쪽에 띄우기 위한 클래스 */
+.refimg-preview.left {
+  left: auto;
+  right: 100%;
+  transform: translateY(-50%) translateX(-12px);
 }
 
 .refimg-preview img {

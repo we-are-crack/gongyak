@@ -10,6 +10,30 @@ const showLoading = results => {
   results.appendChild(loadingTemplate);
 };
 
+// refimg 미리보기 위치 자동 조정 함수
+function bindRefimgPreviewHandlers() {
+  document.querySelectorAll('.candidate-card a.refimg').forEach(link => {
+    // 중복 등록 방지
+    if (link.dataset.refimgBound) return;
+    link.dataset.refimgBound = '1';
+    link.addEventListener('mouseenter', function () {
+      const preview = link.querySelector('.refimg-preview');
+      if (!preview) return;
+      preview.classList.remove('left');
+      preview.style.display = 'block';
+      const rect = preview.getBoundingClientRect();
+      if (rect.right > window.innerWidth) {
+        preview.classList.add('left');
+      }
+      preview.style.display = '';
+    });
+    link.addEventListener('mouseleave', function () {
+      const preview = link.querySelector('.refimg-preview');
+      if (preview) preview.classList.remove('left');
+    });
+  });
+}
+
 // 검색 결과를 렌더링하는 함수 (검색어와 htmlData를 함께 렌더링)
 const renderResults = (results, searchKeyword, htmlData, append = false) => {
   // 검색어 템플릿을 복제해서 값만 채움
@@ -28,6 +52,8 @@ const renderResults = (results, searchKeyword, htmlData, append = false) => {
     if (keywordNode) results.appendChild(keywordNode);
     results.innerHTML += htmlData;
   }
+  // 후보자 카드 렌더링 후 refimg 이벤트 바인딩
+  bindRefimgPreviewHandlers();
 };
 
 // 템플릿을 적용해서 렌더링하는 함수
@@ -64,6 +90,15 @@ const search = async (inputId, append = false) => {
 
   try {
     const response = await fetch('/test'); // API 호출
+
+    if (response.status === 429) {
+      // 요청이 너무 많을 때
+      const data = await response.json();
+      document.getElementById('loading')?.remove();
+      alert(data.message || '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.');
+      appendReSearch(results);
+      return;
+    }
 
     if (!response.ok) throw new Error('API 호출 오류');
 
@@ -107,4 +142,6 @@ const appendReSearch = results => {
 // 초기화
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('searchButton').addEventListener('click', () => search('searchInput'));
+  // 최초 로딩 시에도 바인딩 (초기 카드가 있을 경우)
+  bindRefimgPreviewHandlers();
 });
