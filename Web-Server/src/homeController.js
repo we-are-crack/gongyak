@@ -11,7 +11,9 @@ export const home = (req, res) => {
 };
 
 export const pledges = async (req, res) => {
-  const url = 'http://127.0.0.1/query';
+  // 클라이언트에서 전달된 검색어 추출
+  const searchQuery = req.query.q || '';
+  const url = `http://127.0.0.1:5000/query?q=${encodeURIComponent(searchQuery)}`;
   const headers = { Accept: 'application/json' };
 
   try {

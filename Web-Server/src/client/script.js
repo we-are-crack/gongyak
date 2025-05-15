@@ -104,7 +104,8 @@ const search = async (inputId, append) => {
   }
 
   try {
-    const response = await fetch('/pledges');
+    // 검색어를 쿼리 파라미터로 전달
+    const response = await fetch(`/pledges?q=${encodeURIComponent(input)}`);
 
     if (response.status === 429) {
       const data = await response.json();
