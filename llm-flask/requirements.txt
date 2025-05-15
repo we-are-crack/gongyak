@@ -1,0 +1,11 @@
+Flask
+pdf2image
+Pillow
+google-cloud-vision
+faiss-cpu
+sentence-transformers
+numpy
+google-genai
+google-cloud-storage
+langchain
+langchain-community
