@@ -3,6 +3,12 @@ from langchain.schema import Document
 from app.extensions.storage import storage
 from app.extensions.faiss import faiss_service
 
+candidate_eng_name = {
+    "이재명" : "leejaemyung",
+    "김문수" : "kimmoonsoo",
+    "이준석" : "leejunseok"
+}
+
 def embed_texts(text_dir, political_party, candidate):
     print("text embedding start...")
     base_dir = os.path.join(storage.base_dir, f"{political_party}_{candidate}")
@@ -24,7 +30,8 @@ def embed_texts(text_dir, political_party, candidate):
             "source_image": f"{image_source_base_url}/{base_dir}/half_images/{original_filename}.jpg",
             "source_text": f"{base_dir}/ocr_texts/{original_filename}.txt",
             "political_party": political_party,
-            "candidate": candidate
+            "candidate": candidate,
+            "candidate_eng": candidate_eng_name.get(candidate)
         }
 
         # E5 모델 입력 형식: "passage: ..."

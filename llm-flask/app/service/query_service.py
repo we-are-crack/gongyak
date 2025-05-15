@@ -97,6 +97,7 @@ def query(q: str) -> str:
         f"{doc.page_content}\n"
         f"[정당: {political_party_eng.get(doc.metadata.get('political_party', 'N/A'))}] "
         f"[후보자: {doc.metadata.get('candidate', 'N/A')}] "
+        f"[후보자영문: {doc.metadata.get('candidate_eng', 'N/A')}] "
         f"[이미지: {doc.metadata.get('source_image', 'N/A')}] "
         f"[OCR텍스트: {doc.metadata.get('source_text', 'N/A')}]"
         for doc in docs
@@ -104,12 +105,12 @@ def query(q: str) -> str:
 
     prompt = f"""
     당신은 대한민국 제21대 대통령 선거 후보자의 정책 공약에 대해서만 대답하는 AI입니다. 당신은 지금부터 아래 주어지는 대한민국 21대 대통령 선거 후보자의 정책 공약을 쉽게 요약해주어야 합니다.
-    각 데이터의 [] 내에는 해당 문서의 메타데이터가 포함되어 있습니다. 이를 활용해 아래 주어진 답변 형식에 따라 질문에 대한 답을 해주세요.
+    각 데이터의 [] 내에는 해당 문서의 메타데이터가 포함되어 있습니다. 이를 활용해 아래 주어진 답변 형식에 따라 질문에 대한 답을 해주세요. 그리고 중복되는 내용은 제외해주세요.
     답변 형식에 포함된 백틱(`)으로 감싸진 `후보자`, `정당`, `이미지` 등은 아래 지정하는 값을 넣어주세요.
     `후보자`: 메타데이터.후보자
     `정당`: 메타데이터.정당
     `이미지`: 메타데이터.이미지
-    `후보자 사진`: https://storage.googleapis.com/gongyak21_public/resources/candidate_image/`메타데이터.후보자`.png
+    `후보자 사진`: https://storage.googleapis.com/gongyak21_public/resources/candidate_image/`메타데이터.후보자영문`.png
     요약은 후보자별로 그리고 페이지별로 간단하게 요약해주세요. 즉, div.candidate-card는 후보자 수만큼, div.main-pledge는 해당 후보자의 주요 공약 내용을 페이지별로 요약한 수만큼 추가되어야 합니다. 세부내용을 포함하는 li 태그들은 형식에 포함된 개수와 상관없이 당신이 요약한 갯수만큼 추가하되 형식에서 기존에 존재하던 태그들과 동일한 레벨에 추가해주세요.
     마지막으로 후보자별 공약을 요약하는 summary-talbe 내의 li는 당신이 위에서 요약한 후보자별 div.main-pledge의 페이지별 요약을 더욱 간단하게 요약해서 추가하면 됩니다.
 
