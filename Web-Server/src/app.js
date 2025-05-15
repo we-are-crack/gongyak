@@ -6,39 +6,59 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import rateLimit from 'express-rate-limit';
 import rootRouter from './rootRouter.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 const logger = morgan('dev');
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// 환경변수에서 값 읽기
+const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 1 * 60 * 1000;
+const RATE_LIMIT_MAX = parseInt(process.env.RATE_LIMIT_MAX) || 10;
+
+// CSP directive 파싱 함수
+function parseCspDirective(envKey) {
+  const reserved = ['self', 'none', 'unsafe-inline', 'unsafe-eval', 'strict-dynamic', 'report-sample'];
+  const value = process.env[envKey];
+
+  if (!value) return undefined;
+
+  return value.split(',').map(s => {
+    const trimmed = s.trim();
+    return reserved.includes(trimmed) ? `'${trimmed}'` : trimmed;
+  });
+}
+
+// helmet 옵션 생성 함수
+function createHelmetOptions() {
+  const directives = {
+    defaultSrc: parseCspDirective('CSP_DEFAULT_SRC') || ["'self'"],
+    scriptSrc: parseCspDirective('CSP_SCRIPT_SRC'),
+    styleSrc: parseCspDirective('CSP_STYLE_SRC'),
+    fontSrc: parseCspDirective('CSP_FONT_SRC'),
+    imgSrc: parseCspDirective('CSP_IMG_SRC'),
+    connectSrc: parseCspDirective('CSP_CONNECT_SRC'),
+  };
+  // undefined directive 제거
+  Object.keys(directives).forEach(key => {
+    if (!directives[key]) delete directives[key];
+  });
+  return { contentSecurityPolicy: { directives } };
+}
+
+const helmetOptions = createHelmetOptions();
+
 const limiter = rateLimit({
-  windowMs: 1 * 60 * 1000,
-  max: 10,
+  windowMs: RATE_LIMIT_WINDOW_MS,
+  max: RATE_LIMIT_MAX,
   message: {
     status: 'error',
     message: '너무 많은 요청을 보냈습니다. 잠시 후 다시 시도해주세요.',
   },
 });
-
-const helmetOptions = {
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      styleSrc: [
-        "'self'",
-        "'unsafe-inline'",
-        'https://cdn.jsdelivr.net',
-        'https://fonts.googleapis.com',
-        'https://cdn.rawgit.com',
-      ],
-      fontSrc: ["'self'", 'https://cdn.jsdelivr.net', 'https://fonts.gstatic.com', 'https://cdn.rawgit.com'],
-      imgSrc: ["'self'", 'data:', 'https://storage.googleapis.com', 'https://i.namu.wiki'],
-      connectSrc: ["'self'"],
-    },
-  },
-};
 
 app.use((req, res, next) => {
   if (
