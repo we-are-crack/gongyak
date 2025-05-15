@@ -7,8 +7,10 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "NODE_ENV=development node src/server.js",
-    "start": "NODE_ENV=production node src/server.js"
+    "dev": "pm2 start ecosystem.config.yml --env development --watch",
+    "start": "pm2 start ecosystem.config.yml --env production --watch",
+    "stop": "pm2 stop ecosystem.config.yml",
+    "restart": "pm2 restart ecosystem.config.yml"
   },
   "dependencies": {
     "cors": "^2.8.5",
