@@ -9,3 +9,4 @@ google-genai
 google-cloud-storage
 langchain
 langchain-community
+gunicorn
