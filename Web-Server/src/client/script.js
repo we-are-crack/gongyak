@@ -158,8 +158,12 @@ const appendReSearch = results => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('searchButton').addEventListener('click', () => {
-    search('searchInput');
+  const handleSearch = () => search('searchInput');
+  document.getElementById('searchButton').addEventListener('click', handleSearch);
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
   });
   bindRefimgPreviewHandlers();
 });

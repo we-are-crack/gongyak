@@ -141,6 +141,9 @@ p {
   .container {
     padding: 0.5rem !important;
   }
+  .refimg-preview {
+    display: none !important;
+  }
 }
 
 .candidate-container {
@@ -401,6 +404,7 @@ p {
   border-radius: 0.5em;
   font-size: 1rem;
   display: inline-block;
+  white-space: nowrap; /* 한 줄로만 표시 */
 }
 
 .summary-cand-theminjoo {
