@@ -5,12 +5,10 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import rateLimit from 'express-rate-limit';
-
 import rootRouter from './rootRouter.js';
 
 const app = express();
 const logger = morgan('dev');
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -42,9 +40,7 @@ const helmetOptions = {
   },
 };
 
-// API 요청 제한 (정적 파일은 제외)
 app.use((req, res, next) => {
-  // 홈화면(home.html) 또는 기타 정적 파일 요청은 rate limit 제외
   if (
     req.method === 'GET' &&
     (req.url === '/' ||
@@ -60,28 +56,18 @@ app.use((req, res, next) => {
   limiter(req, res, next);
 });
 
-// CORS 허용 (정적 파일 제공 전에 위치)
 app.use(cors());
-
 app.use(express.static(path.join(__dirname, 'client')));
-
-// helmet 보안 설정
 app.use(helmet(helmetOptions));
-
-// 로깅
 app.use(logger);
-
-// body 파싱
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 요청 디버깅
 app.use((req, res, next) => {
   console.log(`Incoming request: ${req.method} ${req.url}`);
   next();
 });
 
-// 라우터 등록
 app.use('/', rootRouter);
 
 export default app;

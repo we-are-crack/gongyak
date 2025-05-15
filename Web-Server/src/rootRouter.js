@@ -4,6 +4,6 @@ import { home, fetchPledges } from './homeController.js';
 const rootRouter = express.Router();
 
 rootRouter.get('/', home);
-rootRouter.get('/test', fetchPledges);
+rootRouter.get('/pledges', fetchPledges);
 
 export default rootRouter;
