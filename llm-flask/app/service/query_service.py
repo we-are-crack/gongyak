@@ -7,10 +7,10 @@ from app.extensions.gemini import gemini
 answer_format = """
 <div class="candidate-container">
   <div class="candidates-grid">
-    <div class="candidate-card `정당`">
+    <div class="candidate-card `정당영문`">
       <div class="candidate-header">
         <a
-          href="`후보자 사진`"
+          href="`후보자사진`"
         >
           <img
             class="candidate-photo"
@@ -65,7 +65,7 @@ answer_format = """
     </thead>
     <tbody>
       <tr>
-        <td><span class="summary-cand summary-cand-`정당`">`후보자`</span></td>
+        <td><span class="summary-cand summary-cand-`정당영문`">`후보자`</span></td>
         <td>
           <ul>
             <li>공약 요약 1</li>
@@ -79,12 +79,6 @@ answer_format = """
 <hr class="border-gray-300 mb-4" />
 """
 
-political_party_eng = {
-  "더불어민주당": "theminjoo",
-  "국민의힘": "peoplepowerparty",
-  "개혁신당": "reformparty"
-}
-
 def query(q: str) -> str:
     docs = []
 
@@ -93,23 +87,24 @@ def query(q: str) -> str:
     
     context = "\n\n".join(
         f"{doc.page_content}\n"
-        f"[정당: {political_party_eng.get(doc.metadata.get('political_party', 'N/A'))}] "
-        f"[후보자: {doc.metadata.get('candidate', 'N/A')}] "
-        f"[후보자영문: {doc.metadata.get('candidate_eng', 'N/A')}] "
-        f"[이미지: {doc.metadata.get('source_image', 'N/A')}] "
-        f"[OCR텍스트: {doc.metadata.get('source_text', 'N/A')}]"
+        f"metadata[정당: {doc.metadata.get('political_party', 'N/A')}, "
+        f"정당영문명: {doc.metadata.get('political_party_eng', 'N/A')}, "
+        f"후보자: {doc.metadata.get('candidate', 'N/A')}, "
+        f"후보자영문: {doc.metadata.get('candidate_eng', 'N/A')}, "
+        f"이미지: {doc.metadata.get('source_image', 'N/A')}, "
+        f"후보자사진: {doc.metadata.get('candidate_image', 'N/A')}] "
         for doc in docs
     )
 
     prompt = f"""
-    당신은 대한민국 제21대 대통령 선거 후보자의 정책 공약에 대해서만 대답하는 AI입니다. 당신은 지금부터 아래 주어지는 대한민국 21대 대통령 선거 후보자의 정책 공약을 쉽게 요약해주어야 합니다.
+    당신은 대한민국 제21대 대통령 선거 후보자의 정책 공약에 대해서만 대답하는 AI입니다. 당신은 지금부터 아래 주어지는 대한민국 21대 대통령 선거 후보자의 정책 공약 데이터 중에 질문과 관계있는 문서에 대해서만 간략하고 쉽게 요약해주어야 합니다.
     또한, 요약한 모든 문장은 명사형 종결 스타일로 작성해야 합니다. 예를들어 "대책을 마련하겠습니다." 가 아닌 "대책 마련" 식으로 간결하게 요약하세요.
     각 데이터의 [] 내에는 해당 문서의 메타데이터가 포함되어 있습니다. 이를 활용해 아래 주어진 답변 형식에 따라 질문에 대한 답을 해주세요. 그리고 중복되는 내용은 제외해주세요.
-    답변 형식에 포함된 백틱(`)으로 감싸진 `후보자`, `정당`, `이미지`, `후보자 사진`은 아래 지정하는 값을 넣어주세요.
-    `후보자`: 메타데이터.후보자
-    `정당`: 메타데이터.정당
-    `이미지`: 메타데이터.이미지
-    `후보자 사진`: https://storage.googleapis.com/gongyak21_public/resources/candidate_image/`메타데이터.후보자영문`.png
+    답변 형식에 포함된 백틱(`)으로 감싸진 `후보자`, `정당`, `이미지`, `후보자사진`은 metadata를 참고해 아래 지정하는 값을 넣어주세요.
+    `후보자`: metadata.후보자
+    `정당영문`: metadata.정당영문
+    `이미지`: metadata.이미지
+    `후보자사진`: metadata.후보자사진
 
     요약은 후보자별로 그리고 페이지별로 간략하게 요약해주세요. 즉, div.candidate-card는 후보자 수만큼, div.main-pledge는 해당 후보자의 주요 공약 내용을 페이지별로 요약한 수만큼 추가되어야 합니다. 세부내용을 포함하는 li 태그는 최대 4개까지만 작성해주세요.
     마지막으로 후보자별 공약을 요약하는 summary-talbe 내의 li는 당신이 위에서 요약한 후보자별 div.main-pledge의 페이지별 요약을 더욱 간단하게 요약해서 추가하면 됩니다.
