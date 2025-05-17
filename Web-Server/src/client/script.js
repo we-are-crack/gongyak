@@ -4,6 +4,8 @@ const resetResults = results => {
 };
 
 const showLoading = results => {
+  // 기존 로딩 제거
+  results.querySelector('#loading')?.remove();
   const loadingTemplate = document.getElementById('loadingTemplate').content.cloneNode(true);
   results.appendChild(loadingTemplate);
 };
