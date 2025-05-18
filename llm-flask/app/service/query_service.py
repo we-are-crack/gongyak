@@ -18,7 +18,7 @@ answer_format = """
             alt="이재명 후보"
           />
         </a>
-        <h2>기호 1번 더불어민주당 이재명</h2>
+        <h2>더불어민주당 이재명</h2>
       </div>
       <div class="main-pledge">
         한 문서의 정책 요약 내용
@@ -64,7 +64,7 @@ answer_format = """
             alt="김문수 후보"
           />
         </a>
-        <h2>기호 2번 국민의힘 김문수</h2>
+        <h2>국민의힘 김문수</h2>
       </div>
       <div class="main-pledge">
         한 문서의 정책 요약 내용
@@ -110,7 +110,7 @@ answer_format = """
             alt="이준석 후보"
           />
         </a>
-        <h2>기호 4번 개혁신당 이준석</h2>
+        <h2>개혁신당 이준석</h2>
       </div>
       <div class="main-pledge">
         한 문서의 정책 요약 내용
@@ -165,6 +165,8 @@ answer_format = """
             <li>공약 요약 2</li>
           </ul>
         </td>
+      </tr>
+      <tr>
         <td><span class="summary-cand summary-cand-peoplepowerparty">김문수</span></td>
         <td>
           <ul>
@@ -173,6 +175,8 @@ answer_format = """
             <li>공약 요약 2</li>
           </ul>
         </td>
+      </tr>
+      <tr>
         <td><span class="summary-cand summary-cand-reformparty">이준석</span></td>
         <td>
           <ul>
@@ -216,7 +220,7 @@ def query(q: str) -> str:
   답변 형식에 포함된 백틱(`)으로 감싸진 `이미지`는 metadata를 참고해 아래 지정하는 값을 넣어주세요.
   - `이미지`: metadata.이미지
 
-  요약은 후보자별로 그리고 페이지별로 간략하게 요약해주세요. div.main-pledge와 세부 공약내용인 li 태그는 당신이 요약한 페이지 수만큼 추가되어야 합니다. 예를들어, 당신이 3개의 문서를 참조해 요약했다면 div.main-pledge는 3개가 되어야하고 세부 공약 내용이 3개라면 li 태그 또한 3개가 되어야합니다. 단, li 태그는 최대 4개까지만 추가하세요.
+  요약은 후보자별로 그리고 페이지별로 최대한 간단하게 요약해주세요. div.main-pledge와 세부 공약내용인 li 태그는 당신이 요약한 페이지 수만큼 추가되어야 합니다. 예를들어, 당신이 3개의 문서를 참조해 요약했다면 div.main-pledge는 3개가 되어야하고 세부 공약 내용이 3개라면 li 태그 또한 3개가 되어야합니다. 단, li 태그는 최대 4개까지만 추가하세요.
   마지막으로 후보자별 공약을 요약하는 summary-talbe 내의 li는 당신이 위에서 요약한 후보자별 div.main-pledge의 페이지별 요약을 더욱 간단하게 요약해서 추가하면 됩니다.
 
   질문: {q}
