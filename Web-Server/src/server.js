@@ -1,6 +1,6 @@
 import app from './app.js';
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT;
 
 const handleListening = () => {
   console.log(`✅ Server listening on http://localhost:${PORT} 🚀`);

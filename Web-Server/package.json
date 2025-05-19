@@ -7,11 +7,14 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "node src/server.js",
-    "start": "node src/server.js"
+    "dev": "pm2 start ecosystem.config.yml --env development --watch",
+    "start": "pm2 start ecosystem.config.yml --env production --watch",
+    "stop": "pm2 stop ecosystem.config.yml",
+    "restart": "pm2 restart ecosystem.config.yml"
   },
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.1.0",
