@@ -2,15 +2,13 @@ import os
 from typing import Union
 from io import BytesIO
 from werkzeug.datastructures import FileStorage
-from app.storage.storage_interface import StorageInterface
 
-class LocalStorage(StorageInterface):
+class LocalStorage():
     def __init__(self, base_dir="resources"):
         self.base_dir = base_dir
         os.makedirs(base_dir, exist_ok=True)
 
-    def save(self, file_stream: Union[FileStorage, BytesIO], dirname: str, filename: str) -> str:
-        save_dir = os.path.join(self.base_dir, dirname)
+    def save(self, file_stream: Union[FileStorage, BytesIO], save_dir: str, filename: str) -> str:
         os.makedirs(save_dir, exist_ok=True)
 
         save_path = os.path.join(save_dir, filename)
@@ -25,8 +23,8 @@ class LocalStorage(StorageInterface):
 
         return save_path
 
-    def load(self, dirname: str, filename: str) -> bytes:
-        file_path = os.path.join(self.base_dir, dirname, filename)
+    def load(self, target_dir: str, filename: str) -> bytes:
+        file_path = os.path.join(target_dir, filename)
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"{file_path} 파일을 찾을 수 없습니다.")
 
@@ -40,9 +38,11 @@ class LocalStorage(StorageInterface):
             with open(file_path, "rb") as f:
                 return f.read()
 
-    def list_files(self, dirname: str) -> list:
-        dir_path = os.path.join(self.base_dir, dirname)
-        if not os.path.exists(dir_path):
-            raise FileNotFoundError(f"{dir_path} 디렉토리를 찾을 수 없습니다.")
+    def list_files(self, target_dir: str) -> list:
+        if not os.path.exists(target_dir):
+            raise FileNotFoundError(f"{target_dir} 디렉토리를 찾을 수 없습니다.")
         
-        return os.listdir(dir_path)
+        return os.listdir(target_dir)
+
+    def is_exists(self, file_path: str) -> bool:
+        return os.path.isfile(file_path)

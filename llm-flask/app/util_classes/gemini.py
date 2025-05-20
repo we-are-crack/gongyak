@@ -2,7 +2,7 @@ import os
 from google import genai
 from google.genai import types
 
-class GeminiService:
+class Gemini:
 
     MODLE_2_0_FLASH_001 = "gemini-2.0-flash-001"
     MODLE_2_0_FLASH_LITE_001 = "gemini-2.0-flash-lite-001"

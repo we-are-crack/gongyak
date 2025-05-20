@@ -1,8 +1,7 @@
 from flask import Blueprint, request, jsonify, Response
 import os
 from werkzeug.utils import secure_filename
-from app.preprocessing_service.preprocessing import preprocessing
-from app.extensions.storage import storage
+
 from app.service.query_service import query, is_relevant_question
 
 query_bp = Blueprint("query", __name__)

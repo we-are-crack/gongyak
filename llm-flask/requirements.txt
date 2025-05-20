@@ -1,5 +1,4 @@
 Flask
-pdf2image
 Pillow
 google-cloud-vision
 faiss-cpu
@@ -10,3 +9,4 @@ google-cloud-storage
 langchain
 langchain-community
 gunicorn
+pymupdf

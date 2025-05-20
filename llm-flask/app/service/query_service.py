@@ -1,8 +1,8 @@
 import os
 from google import genai
 from google.genai import types
-from app.extensions.faiss import faiss_service
-from app.extensions.gemini import gemini
+
+from app.extensions.beans import faiss, gemini
 
 answer_format = """
 <div class="candidate-container">
@@ -193,11 +193,7 @@ answer_format = """
 """
 
 def query(q: str) -> str:
-  q = f"query: {q}"
-  docs = []
-
-  for ret in faiss_service.get_retrievers():
-      docs.extend(ret.get_relevant_documents(q))
+  docs = faiss.query(q)
   
   context = "\n\n".join(
       f"{doc.page_content}\n"
@@ -205,9 +201,7 @@ def query(q: str) -> str:
       f"정당영문명: {doc.metadata.get('political_party_eng', 'N/A')}, "
       f"후보자: {doc.metadata.get('candidate', 'N/A')}, "
       f"후보자영문: {doc.metadata.get('candidate_eng', 'N/A')}, "
-      f"이미지: {doc.metadata.get('source_image', 'N/A')}, "
-      f"후보기호: {doc.metadata.get('candidate_num', 'N/A')}, "
-      f"후보자사진: {doc.metadata.get('candidate_image', 'N/A')}] "
+      f"이미지: {doc.metadata.get('source_image', 'N/A')}] "
       for doc in docs
   )
 
