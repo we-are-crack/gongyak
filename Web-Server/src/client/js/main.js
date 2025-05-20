@@ -3,7 +3,7 @@ import { bindRefimgPreviewHandlers } from '/js/preview.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize Kakao SDK
-  Kakao.init('JAVASCRIPT_KEY');
+  Kakao.init('1f88dc3dc56724c6631df399322a11c4');
   Kakao.isInitialized();
 
   const handleSearch = () => {

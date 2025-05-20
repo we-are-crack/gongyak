@@ -10,10 +10,10 @@ export function bindShareButton() {
     const shareUrl = `${window.location.origin}/share?q=${encodeURIComponent(keyword)}`;
 
     // 모바일 환경 감지
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const isMobile = isMobileDevice();
 
-    if (isMobile && window.Kakao && window.Kakao.Link) {
-      window.Kakao.Link.sendDefault({
+    if (isMobile && typeof Kakao !== 'undefined') {
+      Kakao.Share.sendDefault({
         objectType: 'feed',
         content: {
           title: `공약21 공약 검색: ${keyword}`,
@@ -40,4 +40,15 @@ export function bindShareButton() {
       });
     }
   });
+}
+
+// 모바일 감지
+function isMobileDevice() {
+  // User-Agent Client Hints API를 사용하여 모바일 기기 감지
+  if (navigator.userAgentData.mobile) {
+    return true;
+  }
+
+  // User-Agent를 사용하여 모바일 기기 감지
+  return /Android|iPhone|iPad|iPod|Windows Phone|webOS|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent);
 }
