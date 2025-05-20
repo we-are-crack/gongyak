@@ -1,0 +1,16 @@
+doctype html
+html
+  head
+    meta(charset="utf-8")
+    title 잘못된 접근입니다
+    style.
+      body { font-family: sans-serif; padding: 2rem; background: #f8f8f8; }
+      .container { background: #fff; border-radius: 8px; padding: 2rem; max-width: 480px; margin: 4rem auto; box-shadow: 0 2px 8px rgba(0,0,0,0.07);}
+      h2 { color: #d32f2f; }
+      a { color: #1976d2; text-decoration: underline; }
+  body
+    .container
+      h2 잘못된 접근입니다
+      p
+        a(href=`/share?q=${encodeURIComponent(searchQuery || '')}`) 여기
+        | 를 클릭해 검색 결과 페이지로 이동하세요.

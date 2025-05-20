@@ -13,6 +13,11 @@ export function home(req, res) {
 export const pledges = async (req, res) => {
   let searchQuery = req.query.q || '';
 
+  // 브라우저에서 직접 접근 시 안내 메시지 반환 (400.pug 렌더)
+  if (req.headers.accept && req.headers.accept.includes('text/html')) {
+    return res.status(400).render('400', { searchQuery });
+  }
+
   // 중복된 검색어 길이 제한 검사
   if (handleSearchQueryLengthLimit(res, searchQuery)) return;
 
