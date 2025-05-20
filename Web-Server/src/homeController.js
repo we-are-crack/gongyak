@@ -6,10 +6,9 @@ import fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const home = (req, res) => {
-  console.log('home controller called');
-  res.sendFile(path.join(__dirname, 'client', 'home.html'));
-};
+export function home(req, res) {
+  res.render('home');
+}
 
 export const pledges = async (req, res) => {
   // 클라이언트에서 전달된 검색어 추출

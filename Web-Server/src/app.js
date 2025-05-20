@@ -15,6 +15,10 @@ const logger = morgan('dev');
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Pug 템플릿 엔진 설정
+app.set('views', path.join(__dirname, 'client'));
+app.set('view engine', 'pug');
+
 // 환경변수에서 값 읽기
 const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 1 * 60 * 1000;
 const RATE_LIMIT_MAX = parseInt(process.env.RATE_LIMIT_MAX) || 10;
