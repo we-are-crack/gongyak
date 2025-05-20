@@ -2,7 +2,6 @@ import os
 import io
 from io import BytesIO
 import fitz  # pymupdf
-from PyPDF2 import PdfReader, PdfWriter
 from google.cloud import vision
 import logging
 import time
