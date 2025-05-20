@@ -88,6 +88,12 @@ export const search = async (inputId, append) => {
 
       alert(data.message || '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.');
       appendReSearch(results);
+
+      // 일정 시간 후 버튼 다시 활성화 (예: 3초)
+      setTimeout(() => {
+        setSearchUIEnabled(true);
+      }, 3000);
+
       return;
     }
 

@@ -64,28 +64,33 @@ const limiter = rateLimit({
   },
 });
 
-app.use((req, res, next) => {
-  if (
-    req.method === 'GET' &&
-    (req.url === '/' ||
-      req.url.startsWith('/home.html') ||
-      req.url.startsWith('/favicon.ico') ||
-      req.url.startsWith('/script.js') ||
-      req.url.startsWith('/style.css') ||
-      req.url.startsWith('/assets') ||
-      req.url.startsWith('/images'))
-  ) {
-    return next();
-  }
-  limiter(req, res, next);
-});
-
-app.use(cors());
+// 정적 파일 라우트는 rate limit보다 먼저 등록
+app.use('/js', express.static(path.join(__dirname, 'client/js')));
+app.use('/css', express.static(path.join(__dirname, 'client/css')));
+app.use('/assets', express.static(path.join(__dirname, 'client/assets')));
+app.use('/images', express.static(path.join(__dirname, 'client/images')));
 app.use(express.static(path.join(__dirname, 'client')));
+
+// helmet, logger 등 기타 미들웨어
 app.use(helmet(helmetOptions));
 app.use(logger);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// rate limit: 정적 파일은 제외
+app.use(
+  rateLimit({
+    windowMs: 60 * 1000,
+    max: 30,
+    skip: req =>
+      req.path.startsWith('/js/') ||
+      req.path.startsWith('/css/') ||
+      req.path.startsWith('/assets/') ||
+      req.path.startsWith('/images/'),
+  }),
+);
+
+app.use(cors());
 
 app.use((req, res, next) => {
   console.log(`Incoming request: ${req.method} ${req.url}`);

@@ -39,3 +39,7 @@ html(lang="ko")
 
       include partials/footer.pug
       include partials/templates.pug
+
+      //- 공유 검색어가 있을 경우 data attribute로 전달
+      if typeof sharedQuery !== 'undefined' && sharedQuery
+        #shared-query(data-shared-query=sharedQuery)

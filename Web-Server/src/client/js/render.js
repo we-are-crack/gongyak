@@ -1,4 +1,5 @@
 import { bindRefimgPreviewHandlers } from '/js/preview.js';
+import { bindShareButton } from '/js/share.js';
 
 export const showLoading = results => {
   if (results.querySelector('#loading')) {
@@ -39,6 +40,7 @@ export const renderResults = (results, searchKeyword, htmlData, append) => {
   }
 
   bindRefimgPreviewHandlers();
+  bindShareButton();
 };
 
 export const renderTemplate = (templateId, container, append) => {

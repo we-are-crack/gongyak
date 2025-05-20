@@ -11,19 +11,12 @@ export function home(req, res) {
 }
 
 export const pledges = async (req, res) => {
-  // 클라이언트에서 전달된 검색어 추출
   let searchQuery = req.query.q || '';
 
-  // 검색어 길이 제한 검사
-  if (isSearchQueryTooLong(searchQuery)) {
-    return res.status(200).set('Content-Type', 'application/json; charset=utf-8').json({
-      search: '',
-      status: 'tooLong',
-      htmlData: '',
-    });
-  }
+  // 중복된 검색어 길이 제한 검사
+  if (handleSearchQueryLengthLimit(res, searchQuery)) return;
 
-  const url = `http://127.0.0.1:5000/query?q=${encodeURIComponent(searchQuery)}`;
+  const url = `http://127.0.0.1:${process.env.AI_SERVER_PORT}/query?q=${encodeURIComponent(searchQuery)}`;
   const headers = { Accept: 'application/json' };
 
   try {
@@ -72,11 +65,25 @@ export const pledges = async (req, res) => {
   }
 };
 
-// 검색어 길이 검사 함수
-function isSearchQueryTooLong(query, maxLength = 50) {
-  if (typeof query === 'string' && query.length > maxLength) {
+export const share = async (req, res) => {
+  let searchQuery = req.query.q || '';
+
+  // 검색어 길이 제한 검사
+  if (handleSearchQueryLengthLimit(res, searchQuery)) return;
+
+  // 검색어가 있으면 검색 페이지(home.pug)에 검색어를 전달
+  res.render('home', { sharedQuery: searchQuery });
+};
+
+// 검색어 길이 제한 검사 및 응답 함수
+function handleSearchQueryLengthLimit(res, searchQuery) {
+  if (typeof searchQuery === 'string' && searchQuery.length > 50) {
+    res.status(200).set('Content-Type', 'application/json; charset=utf-8').json({
+      search: '',
+      status: 'tooLong',
+      htmlData: '',
+    });
     return true;
-  } else {
-    return false;
   }
+  return false;
 }
