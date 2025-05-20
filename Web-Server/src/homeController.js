@@ -6,25 +6,22 @@ import fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const home = (req, res) => {
-  console.log('home controller called');
-  res.sendFile(path.join(__dirname, 'client', 'home.html'));
-};
+export function home(req, res) {
+  res.render('home');
+}
 
 export const pledges = async (req, res) => {
-  // 클라이언트에서 전달된 검색어 추출
   let searchQuery = req.query.q || '';
 
-  // 검색어 길이 제한 검사
-  if (isSearchQueryTooLong(searchQuery)) {
-    return res.status(200).set('Content-Type', 'application/json; charset=utf-8').json({
-      search: '',
-      status: 'tooLong',
-      htmlData: '',
-    });
+  // 브라우저에서 직접 접근 시 안내 메시지 반환 (400.pug 렌더)
+  if (req.headers.accept && req.headers.accept.includes('text/html')) {
+    return res.status(400).render('400', { searchQuery });
   }
 
-  const url = `http://127.0.0.1:5000/query?q=${encodeURIComponent(searchQuery)}`;
+  // 중복된 검색어 길이 제한 검사
+  if (handleSearchQueryLengthLimit(res, searchQuery)) return;
+
+  const url = `http://127.0.0.1:${process.env.AI_SERVER_PORT}/query?q=${encodeURIComponent(searchQuery)}`;
   const headers = { Accept: 'application/json' };
 
   try {
@@ -73,11 +70,25 @@ export const pledges = async (req, res) => {
   }
 };
 
-// 검색어 길이 검사 함수
-function isSearchQueryTooLong(query, maxLength = 50) {
-  if (typeof query === 'string' && query.length > maxLength) {
+export const share = async (req, res) => {
+  let searchQuery = req.query.q || '';
+
+  // 검색어 길이 제한 검사
+  if (handleSearchQueryLengthLimit(res, searchQuery)) return;
+
+  // 검색어가 있으면 검색 페이지(home.pug)에 검색어를 전달
+  res.render('home', { sharedQuery: searchQuery });
+};
+
+// 검색어 길이 제한 검사 및 응답 함수
+function handleSearchQueryLengthLimit(res, searchQuery) {
+  if (typeof searchQuery === 'string' && searchQuery.length > 50) {
+    res.status(200).set('Content-Type', 'application/json; charset=utf-8').json({
+      search: '',
+      status: 'tooLong',
+      htmlData: '',
+    });
     return true;
-  } else {
-    return false;
   }
+  return false;
 }

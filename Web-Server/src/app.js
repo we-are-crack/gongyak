@@ -1,92 +1,40 @@
 import express from 'express';
-import helmet from 'helmet';
-import morgan from 'morgan';
-import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import rateLimit from 'express-rate-limit';
 import rootRouter from './rootRouter.js';
 import dotenv from 'dotenv';
+import {
+  staticMiddleware,
+  helmetMiddleware,
+  loggerMiddleware,
+  jsonMiddleware,
+  urlencodedMiddleware,
+  rateLimitMiddleware,
+  corsMiddleware,
+  requestLoggerMiddleware,
+} from './middlewares.js';
 
 dotenv.config();
 
 const app = express();
-const logger = morgan('dev');
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// 환경변수에서 값 읽기
-const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 1 * 60 * 1000;
-const RATE_LIMIT_MAX = parseInt(process.env.RATE_LIMIT_MAX) || 10;
+// Pug 템플릿 엔진 설정
+app.set('views', path.join(__dirname, 'client'));
+app.set('view engine', 'pug');
 
-// CSP directive 파싱 함수
-function parseCspDirective(envKey) {
-  const reserved = ['self', 'none', 'unsafe-inline', 'unsafe-eval', 'strict-dynamic', 'report-sample'];
-  const value = process.env[envKey];
+// 정적 파일 라우트
+app.use(staticMiddleware(__dirname));
 
-  if (!value) return undefined;
-
-  return value.split(',').map(s => {
-    const trimmed = s.trim();
-    return reserved.includes(trimmed) ? `'${trimmed}'` : trimmed;
-  });
-}
-
-// helmet 옵션 생성 함수
-function createHelmetOptions() {
-  const directives = {
-    defaultSrc: parseCspDirective('CSP_DEFAULT_SRC') || ["'self'"],
-    scriptSrc: parseCspDirective('CSP_SCRIPT_SRC'),
-    styleSrc: parseCspDirective('CSP_STYLE_SRC'),
-    fontSrc: parseCspDirective('CSP_FONT_SRC'),
-    imgSrc: parseCspDirective('CSP_IMG_SRC'),
-    connectSrc: parseCspDirective('CSP_CONNECT_SRC'),
-  };
-  // undefined directive 제거
-  Object.keys(directives).forEach(key => {
-    if (!directives[key]) delete directives[key];
-  });
-  return { contentSecurityPolicy: { directives } };
-}
-
-const helmetOptions = createHelmetOptions();
-
-const limiter = rateLimit({
-  windowMs: RATE_LIMIT_WINDOW_MS,
-  max: RATE_LIMIT_MAX,
-  message: {
-    status: 'error',
-    message: '너무 많은 요청을 보냈습니다. 잠시 후 다시 시도해주세요.',
-  },
-});
-
-app.use((req, res, next) => {
-  if (
-    req.method === 'GET' &&
-    (req.url === '/' ||
-      req.url.startsWith('/home.html') ||
-      req.url.startsWith('/favicon.ico') ||
-      req.url.startsWith('/script.js') ||
-      req.url.startsWith('/style.css') ||
-      req.url.startsWith('/assets') ||
-      req.url.startsWith('/images'))
-  ) {
-    return next();
-  }
-  limiter(req, res, next);
-});
-
-app.use(cors());
-app.use(express.static(path.join(__dirname, 'client')));
-app.use(helmet(helmetOptions));
-app.use(logger);
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-app.use((req, res, next) => {
-  console.log(`Incoming request: ${req.method} ${req.url}`);
-  next();
-});
+// 기타 미들웨어
+app.use(helmetMiddleware);
+app.use(loggerMiddleware);
+app.use(jsonMiddleware);
+app.use(urlencodedMiddleware);
+app.use(rateLimitMiddleware);
+app.use(corsMiddleware);
+app.use(requestLoggerMiddleware);
 
 app.use('/', rootRouter);
 
