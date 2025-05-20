@@ -1,4 +1,4 @@
-# 🎯 21대 대선 후보자 공약 비교 서비스 v1.0
+# 🎯 21대 대선 후보자 공약 비교 서비스 [공약21](https://gongyak21.site/) v1.0
 
 ## 📖 개요
 
@@ -16,12 +16,14 @@
     - `여성 정책 알려줘`
 - **각 후보자의 공식 공약 정책집을 근거로 주요 공약 나열**
 - **후보자들의 공약을 비교 및 요약**
+- **검색한 공약 카카오톡 공유**
 
 ## 🛠️ 기술 스택
 
 ### 🌐 Server
 
 - **Frontend**: `HTML`, `CSS`, `JavaScript`
+- **Template Engine** : `Pug`
 - **Backend**: `Node.js v22.15`
   - `Express v5.1`
 - **Process Manager**: `pm2 v6.0`
