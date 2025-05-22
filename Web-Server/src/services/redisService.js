@@ -6,14 +6,21 @@ import client from '../config/redisConfig.js';
  * @param {Float32Array} embedding - 384차원 벡터
  * @param {String} html - HTML 데이터
  */
-export const saveData = async (searchQuery, embedding, html) => {
+export const save = async (searchQuery, embedding, html) => {
   try {
     // Redis에 데이터 저장 (Hash 구조 사용)
-    await client.hSet(`doc:${searchQuery}`, {
+    const key = `doc:${searchQuery}`;
+
+    await client.hSet(key, {
       searchQuery,
       embedding: Buffer.from(embedding.buffer), // 벡터를 Buffer로 변환
       html,
     });
+
+    // 캐싱 기간 설정
+    const ttl = 86400; // 1일
+    await client.expire(key, ttl);
+
     console.log(`Redis에 데이터 저장 완료: ${searchQuery}`);
   } catch (error) {
     console.error('Redis 데이터 저장 오류:', error);

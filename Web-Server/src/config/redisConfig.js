@@ -32,3 +32,13 @@ client.on('error', err => {
 })();
 
 export default client;
+
+// 서버 종료 시 자원 반납
+process.on('SIGINT', async () => {
+  await client.quit();
+  process.exit(0);
+});
+process.on('SIGTERM', async () => {
+  await client.quit();
+  process.exit(0);
+});
