@@ -1,15 +1,20 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fetch from 'node-fetch';
-import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export function home(req, res) {
+/**
+ * @description 홈 화면 렌더링 컨트롤러
+ */
+export const home = (req, res) => {
   res.render('home');
-}
+};
 
+/**
+ * @description AI 서버에 쿼리를 보내고 결과를 반환하는 컨트롤러
+ */
 export const pledges = async (req, res) => {
   let searchQuery = req.query.q || '';
 
@@ -25,43 +30,25 @@ export const pledges = async (req, res) => {
   const headers = { Accept: 'application/json' };
 
   try {
-    let htmlData;
-    let rest = {};
-    let finalHtmlData;
+    // 운영 환경에서는 기존 로직 사용
+    const response = await fetch(url, { headers });
 
-    // 개발/테스트 환경에서는 testData.json에서 데이터 읽기
-    if (process.env.NODE_ENV === 'development') {
-      const testDataPath = path.join(__dirname, 'test', 'testData.json');
-      const testData = JSON.parse(fs.readFileSync(testDataPath, 'utf-8'));
-
-      // 5초 딜레이 추가
-      await new Promise(resolve => setTimeout(resolve, 5000));
-
-      htmlData = testData.htmlData;
-      rest = { search: testData.search, status: testData.status };
-    } else {
-      // 운영 환경에서는 기존 로직 사용
-      const response = await fetch(url, { headers });
-
-      if (!response.ok) {
-        throw new Error(`AI 서버 응답 오류: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      htmlData = data.htmlData;
-      rest = { search: data.search, status: data.status };
+    if (!response.ok) {
+      throw new Error(`AI 서버 응답 오류: ${response.status}`);
     }
 
-    finalHtmlData = typeof htmlData === 'string' ? htmlData.substring(7, htmlData.length - 3) : '';
+    const data = await response.json();
+
+    const htmlData = data.htmlData;
+    const rest = { search: data.search, status: data.status };
+
+    const finalHtmlData = typeof htmlData === 'string' ? htmlData.substring(7, htmlData.length - 3) : '';
 
     res
       .status(200)
       .set('Content-Type', 'application/json; charset=utf-8')
       .json({ ...rest, htmlData: finalHtmlData });
   } catch (error) {
-    console.error('fetchPledges Error:', error);
-
     res.status(500).set('Content-Type', 'application/json; charset=utf-8').json({
       search: '',
       status: 'error',
@@ -70,6 +57,9 @@ export const pledges = async (req, res) => {
   }
 };
 
+/**
+ * @description 공유 요청을 처리하는 컨트롤러
+ */
 export const share = async (req, res) => {
   let searchQuery = req.query.q || '';
 

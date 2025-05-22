@@ -1,7 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import rootRouter from './rootRouter.js';
+import rootRouter from './routes/homeRouter.js';
 import dotenv from 'dotenv';
 import {
   staticMiddleware,
@@ -12,7 +12,7 @@ import {
   rateLimitMiddleware,
   corsMiddleware,
   requestLoggerMiddleware,
-} from './middlewares.js';
+} from './middlewares/index.js';
 
 dotenv.config();
 
@@ -25,7 +25,7 @@ app.set('views', path.join(__dirname, 'client'));
 app.set('view engine', 'pug');
 
 // 정적 파일 라우트
-app.use(staticMiddleware(__dirname));
+staticMiddleware(__dirname).forEach(mw => app.use(mw));
 
 // 기타 미들웨어
 app.use(helmetMiddleware);

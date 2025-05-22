@@ -1,5 +1,5 @@
 import express from 'express';
-import { home, pledges, share } from './homeController.js';
+import { home, pledges, share } from '../controllers/homeController.js';
 
 const rootRouter = express.Router();
 

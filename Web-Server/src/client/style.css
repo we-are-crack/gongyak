@@ -700,11 +700,35 @@ p {
 nav {
   padding-top: 0.2rem;
   padding-bottom: 0.2rem;
+  position: relative;
 }
-nav ul {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+
+.nav-scroll-area {
+  overflow: hidden;
+  max-width: 580px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
+
+.nav-scroll-list {
+  display: flex;
+  flex-direction: row;
+  gap: 1.5rem;
+  min-width: max-content;
+  animation: nav-scroll 22s linear infinite;
+  will-change: transform;
+}
+
+@keyframes nav-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
 nav ul li a {
   cursor: pointer;
   transition:
