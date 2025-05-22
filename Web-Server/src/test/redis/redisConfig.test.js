@@ -17,6 +17,7 @@ describe('Redis Config', () => {
         host: 'localhost',
         port: 9999, // 잘못된 포트
         reconnectStrategy: false,
+        connectTimeout: 5000, // 5초 타임아웃 설정
       },
     });
 
@@ -29,6 +30,8 @@ describe('Redis Config', () => {
       await badClient.connect();
     } catch (e) {
       // ignore
+    } finally {
+      await badClient.quit().catch(() => {});
     }
     await new Promise(res => setTimeout(res, 200));
     expect(errorEmitted).toBe(true);
