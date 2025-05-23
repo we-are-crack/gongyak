@@ -50,13 +50,13 @@ export const pledges = async (req, res) => {
       rest = { search: data.search, status: data.status };
 
       // Redis에 검색어와 HTML 데이터 저장
-      await redisService.save(searchQuery, getEmbedding, htmlData);
+      await redisService.save(searchQuery, embedding, htmlData);
     }
 
     res
       .status(200)
       .set('Content-Type', 'application/json; charset=utf-8')
-      .json({ ...rest, htmlData: finalHtmlData });
+      .json({ ...rest, htmlData });
   } catch (error) {
     console.error(error);
     res.status(500).set('Content-Type', 'application/json; charset=utf-8').json({
