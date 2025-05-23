@@ -50,7 +50,7 @@ export const pledges = async (req, res) => {
       rest = { search: data.search, status: data.status };
 
       // Redis에 검색어와 HTML 데이터 저장
-      await redisService.save(searchQuery, getEmbedding, htmlData);
+      await redisService.save(searchQuery, embedding, htmlData);
     }
 
     res
