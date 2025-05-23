@@ -1,6 +1,6 @@
+import { jest } from '@jest/globals.js';
 import redisService from '../../services/redisService.js';
 import client from '../../config/redisConfig.js';
-import { jest } from '@jest/globals';
 
 // Redis 클라이언트 Mock 설정
 client.hSet = jest.fn();

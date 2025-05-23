@@ -9,8 +9,7 @@ const client = createClient({
     port: process.env.REDIS_PORT,
     connectTimeout: 10000,
   },
-  username: process.env.REDIS_USERNAME, // ACL 유저 이름
-  password: process.env.REDIS_PASSWORD, // 해당 유저의 비밀번호
+  password: process.env.REDIS_PASSWORD,
 });
 
 client.on('connect', () => {

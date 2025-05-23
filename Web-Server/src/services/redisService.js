@@ -1,6 +1,10 @@
 import client from '../config/redisConfig.js';
 
 class RedisService {
+  constructor() {
+    this.client = client;
+  }
+
   /**
    * 데이터 저장
    * @param {String} searchQuery - 검색어
@@ -96,7 +100,7 @@ class RedisService {
       const indexName = 'vector_index';
       const vectorField = '@embedding';
       const vertorData = Buffer.from(queryEmbedding.buffer);
-      const returnFields = ['searchQuery'];
+      const returnFields = ['searchQuery', 'score'];
       const dialectVersion = '2';
 
       const command = [
@@ -130,9 +134,15 @@ class RedisService {
 
       // 순서가 바뀔 수 있으므로 반복문으로 처리
       for (let i = 0; i < fields.length; i += 2) {
-        if (fields[i] === 'searchQuery') searchQuery = fields[i + 1];
-        if (fields[i] === 'score') score = Number(fields[i + 1]);
+        if (fields[i] === 'searchQuery') {
+          searchQuery = fields[i + 1];
+        }
+        if (fields[i] === 'score') {
+          score = 1 - Number(fields[i + 1]); // RediSearch의 score는 "거리"이므로, 유사도는 (1 - score)
+        }
       }
+
+      console.log(`Redis 벡터 검색 완료: ${searchQuery}, 점수: ${score}`);
 
       return {
         searchQuery,
