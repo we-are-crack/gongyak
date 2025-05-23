@@ -26,14 +26,14 @@ describe('RedisService', () => {
 
       const searchQuery = '청년 주거 정책';
       const embedding = new Float32Array(384).fill(0.5);
-      const html = '<html><body>청년 주거 정책 내용</body></html>';
+      const htmlData = '<html><body>청년 주거 정책 내용</body></html>';
 
-      await redisService.save(searchQuery, embedding, html);
+      await redisService.save(searchQuery, embedding, htmlData);
 
       expect(client.hSet).toHaveBeenCalledWith(`doc:${searchQuery}`, {
         searchQuery,
         embedding: Buffer.from(embedding.buffer),
-        html,
+        htmlData,
       });
       expect(client.expire).toHaveBeenCalledWith(`doc:${searchQuery}`, 86400);
     });
@@ -44,9 +44,9 @@ describe('RedisService', () => {
 
       const searchQuery = '청년 주거 정책';
       const embedding = new Float32Array(384).fill(0.5);
-      const html = '<html><body>청년 주거 정책 내용</body></html>';
+      const htmlData = '<html><body>청년 주거 정책 내용</body></html>';
 
-      await expect(redisService.save(searchQuery, embedding, html)).rejects.toThrow('Redis 저장 오류');
+      await expect(redisService.save(searchQuery, embedding, htmlData)).rejects.toThrow('Redis 저장 오류');
     });
   });
 
@@ -54,13 +54,13 @@ describe('RedisService', () => {
     it('데이터가 존재하면 해당 데이터를 반환한다', async () => {
       client.hGetAll.mockResolvedValue({
         searchQuery: '청년 주거 정책',
-        html: '<html><body>청년 주거 정책 내용</body></html>',
+        htmlData: '<html><body>청년 주거 정책 내용</body></html>',
       });
 
       const result = await redisService.findOne('청년 주거 정책');
       expect(result).toEqual({
         searchQuery: '청년 주거 정책',
-        html: '<html><body>청년 주거 정책 내용</body></html>',
+        htmlData: '<html><body>청년 주거 정책 내용</body></html>',
       });
     });
 
@@ -85,7 +85,7 @@ describe('RedisService', () => {
       client.hGetAll.mockImplementation(key =>
         Promise.resolve({
           searchQuery: `검색어-${key}`,
-          html: `<html>${key}</html>`,
+          htmlData: `<html>${key}</html>`,
         }),
       );
 
@@ -94,7 +94,7 @@ describe('RedisService', () => {
       expect(client.scan).toHaveBeenCalledTimes(2);
       expect(result).toHaveLength(6);
       expect(result[0]).toHaveProperty('searchQuery');
-      expect(result[0]).toHaveProperty('html');
+      expect(result[0]).toHaveProperty('htmlData');
     });
 
     it('키가 없으면 빈 배열을 반환한다', async () => {

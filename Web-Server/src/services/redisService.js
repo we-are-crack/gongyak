@@ -5,15 +5,15 @@ class RedisService {
    * 데이터 저장
    * @param {String} searchQuery - 검색어
    * @param {Float32Array} embedding - 384차원 벡터
-   * @param {String} html - HTML 데이터
+   * @param {String} htmlData - html 데이터
    */
-  async save(searchQuery, embedding, html) {
+  async save(searchQuery, embedding, htmlData) {
     try {
       const key = `doc:${searchQuery}`;
       await client.hSet(key, {
         searchQuery,
         embedding: Buffer.from(embedding.buffer),
-        html,
+        htmlData,
       });
 
       const ttl = 86400; // 1일
@@ -29,7 +29,7 @@ class RedisService {
   /**
    * 데이터 조회
    * @param {String} searchQuery - 검색어
-   * @returns {Object} - 검색어, HTML 데이터
+   * @returns {Object} - 검색어, html 데이터
    */
   async findOne(searchQuery) {
     try {
@@ -42,7 +42,7 @@ class RedisService {
 
       return {
         searchQuery: result.searchQuery,
-        html: result.html,
+        htmlData: result.htmlData,
       };
     } catch (error) {
       console.error('Redis 데이터 조회 오류:', error);
@@ -53,7 +53,7 @@ class RedisService {
   /**
    * 일부 검색 결과 조회
    * @param {Number} limit - 조회할 결과 개수
-   * @returns {Array} - {검색어, HTML 데이터} 리스트
+   * @returns {Array} - {검색어, html 데이터} 리스트
    */
   async findSome(limit = 6) {
     try {
@@ -77,7 +77,7 @@ class RedisService {
       // 바로 변환해서 반환
       return results.map(data => ({
         searchQuery: data.searchQuery,
-        html: data.html,
+        htmlData: data.htmlData,
       }));
     } catch (error) {
       console.error('Redis 일부 검색 결과 조회 오류:', error);
@@ -110,7 +110,7 @@ class RedisService {
         'SORTBY',
         'score',
         'RETURN',
-        returnFields.length,
+        String(returnFields.length),
         ...returnFields,
         'DIALECT',
         dialectVersion,

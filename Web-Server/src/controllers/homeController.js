@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import { getEmbedding } from '../utils/embedding.js';
 import redisService from '../services/redisService.js';
 
 /**
@@ -22,29 +23,42 @@ export const pledges = async (req, res) => {
   // 중복된 검색어 길이 제한 검사
   if (validSearchQueryLengthLimit(res, searchQuery)) return;
 
-  const url = `http://127.0.0.1:${process.env.AI_SERVER_PORT}/query?q=${encodeURIComponent(searchQuery)}`;
-  const headers = { Accept: 'application/json' };
-
   try {
-    // 운영 환경에서는 기존 로직 사용
-    const response = await fetch(url, { headers });
+    let htmlData = '';
+    let rest = {};
 
-    if (!response.ok) {
-      throw new Error(`AI 서버 응답 오류: ${response.status}`);
+    // Redis에 비슷한 검색어가 있는 지 검사
+    const embedding = await getEmbedding(searchQuery);
+    const similarSearchQuery = await checkSimilarSearchQuery(embedding);
+
+    // Redis에 비슷한 검색어가 있으면 Redis에서 데이터 가져오기
+    if (similarSearchQuery !== null) {
+      const findData = await redisService.findOne(similarSearchQuery);
+      htmlData = findData.htmlData;
+      rest = { search: findData.search, status: 'ok' };
+    } else {
+      const url = `http://127.0.0.1:${process.env.AI_SERVER_PORT}/query?q=${encodeURIComponent(searchQuery)}`;
+      const headers = { Accept: 'application/json' };
+      const response = await fetch(url, { headers });
+
+      if (!response.ok) {
+        throw new Error(`AI 서버 응답 오류: ${response.status}`);
+      }
+
+      const data = await response.json();
+      htmlData = data.htmlData.substring(7, data.htmlData.length - 3);
+      rest = { search: data.search, status: data.status };
+
+      // Redis에 검색어와 HTML 데이터 저장
+      await redisService.save(searchQuery, getEmbedding, htmlData);
     }
-
-    const data = await response.json();
-
-    const htmlData = data.htmlData;
-    const rest = { search: data.search, status: data.status };
-
-    const finalHtmlData = typeof htmlData === 'string' ? htmlData.substring(7, htmlData.length - 3) : '';
 
     res
       .status(200)
       .set('Content-Type', 'application/json; charset=utf-8')
       .json({ ...rest, htmlData: finalHtmlData });
   } catch (error) {
+    console.error(error);
     res.status(500).set('Content-Type', 'application/json; charset=utf-8').json({
       search: '',
       status: 'error',
@@ -66,8 +80,6 @@ export const share = async (req, res) => {
 
   // 검색어 길이 제한 검사
   if (validSearchQueryLengthLimit(res, searchQuery)) return;
-
-  // 검색어가 없으면 홈 화면으로 리다이렉트
 
   // 검색어가 있으면 검색 페이지(home.pug)에 검색어를 전달
   res.render('home', { sharedQuery: searchQuery });
@@ -91,6 +103,17 @@ const validSearchQueryLengthLimit = (res, searchQuery) => {
 /**
  * @description Redis에 비슷한 검색어가 있는지 검사
  */
-const checkSimilarSearchQuery = async searchQuery => {
-  redisService;
+const checkSimilarSearchQuery = async enbedding => {
+  try {
+    const { searchQuery, score } = (await redisService.searchByVector(enbedding)) || {};
+
+    // Redis에 비슷한 검색어가 있고, 벡터 검색 시 코사인 유사도 점수가 0.8 이상이면 비슷한 검색어 존재
+    if (searchQuery != null && score > 0.8) {
+      return searchQuery;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('checkSimilarSearchQuery 오류:', error);
+  }
 };

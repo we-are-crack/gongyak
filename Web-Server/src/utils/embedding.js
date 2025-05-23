@@ -10,12 +10,15 @@ export const getEmbedding = async searchQuery => {
     throw new TypeError('searchQuery must be a non-empty string');
   }
 
-  const extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2');
+  try {
+    const extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2');
+    const output = await extractor(searchQuery, {
+      pooling: 'mean',
+      normalize: false,
+    });
 
-  const output = await extractor(searchQuery, {
-    pooling: 'mean',
-    normalize: false,
-  });
-
-  return output.data;
+    return output.data;
+  } catch (error) {
+    throw new Error(`임베딩 추출 실패: ${error.message}`);
+  }
 };
