@@ -1,13 +1,16 @@
-import { save, searchByVector } from '../../services/redisService.js';
+import redisService from '../../services/redisService.js';
 import client from '../../config/redisConfig.js';
 import { jest } from '@jest/globals';
 
 // Redis 클라이언트 Mock 설정
 client.hSet = jest.fn();
+client.expire = jest.fn();
+client.hGetAll = jest.fn();
+client.scan = jest.fn();
 client.sendCommand = jest.fn();
 client.quit = jest.fn();
 
-describe('redisService', () => {
+describe('RedisService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -17,90 +20,119 @@ describe('redisService', () => {
   });
 
   describe('save', () => {
-    it('should save data to Redis successfully', async () => {
-      // Mock Redis hSet 메서드
+    it('Redis에 데이터를 정상적으로 저장한다', async () => {
       client.hSet.mockResolvedValue('OK');
-
-      const searchQuery = '청년 주거 정책';
-      const embedding = new Float32Array(384).fill(0.5); // 384차원 벡터
-      const html = '<html><body>청년 주거 정책 내용</body></html>';
-
-      // save 호출
-      await save(searchQuery, embedding, html);
-
-      // Redis hSet 호출 확인
-      expect(client.hSet).toHaveBeenCalledWith(`doc:${searchQuery}`, {
-        searchQuery,
-        embedding: Buffer.from(embedding.buffer), // Buffer로 변환된 벡터
-        html,
-      });
-      console.log('save 테스트 성공');
-    });
-
-    it('should throw an error if Redis hSet fails', async () => {
-      // Mock Redis hSet 메서드가 오류를 던지도록 설정
-      client.hSet.mockRejectedValue(new Error('Redis 저장 오류'));
+      client.expire.mockResolvedValue('OK');
 
       const searchQuery = '청년 주거 정책';
       const embedding = new Float32Array(384).fill(0.5);
       const html = '<html><body>청년 주거 정책 내용</body></html>';
 
-      // save 호출 및 오류 확인
-      await expect(save(searchQuery, embedding, html)).rejects.toThrow('Redis 저장 오류');
+      await redisService.save(searchQuery, embedding, html);
+
+      expect(client.hSet).toHaveBeenCalledWith(`doc:${searchQuery}`, {
+        searchQuery,
+        embedding: Buffer.from(embedding.buffer),
+        html,
+      });
+      expect(client.expire).toHaveBeenCalledWith(`doc:${searchQuery}`, 86400);
+    });
+
+    it('Redis hSet에서 오류가 발생하면 예외를 던진다', async () => {
+      client.hSet.mockRejectedValue(new Error('Redis 저장 오류'));
+      client.expire.mockResolvedValue('OK');
+
+      const searchQuery = '청년 주거 정책';
+      const embedding = new Float32Array(384).fill(0.5);
+      const html = '<html><body>청년 주거 정책 내용</body></html>';
+
+      await expect(redisService.save(searchQuery, embedding, html)).rejects.toThrow('Redis 저장 오류');
+    });
+  });
+
+  describe('findOne', () => {
+    it('데이터가 존재하면 해당 데이터를 반환한다', async () => {
+      client.hGetAll.mockResolvedValue({
+        searchQuery: '청년 주거 정책',
+        html: '<html><body>청년 주거 정책 내용</body></html>',
+      });
+
+      const result = await redisService.findOne('청년 주거 정책');
+      expect(result).toEqual({
+        searchQuery: '청년 주거 정책',
+        html: '<html><body>청년 주거 정책 내용</body></html>',
+      });
+    });
+
+    it('데이터가 존재하지 않으면 null을 반환한다', async () => {
+      client.hGetAll.mockResolvedValue({});
+      const result = await redisService.findOne('없는 검색어');
+      expect(result).toBeNull();
+    });
+
+    it('Redis에서 오류가 발생하면 예외를 던진다', async () => {
+      client.hGetAll.mockRejectedValue(new Error('Redis 조회 오류'));
+      await expect(redisService.findOne('검색어')).rejects.toThrow('Redis 조회 오류');
+    });
+  });
+
+  describe('findSome', () => {
+    it('최대 6개의 검색 결과를 반환한다', async () => {
+      // SCAN이 여러 번 호출되어 keys가 누적되도록 mock 설정
+      client.scan
+        .mockResolvedValueOnce(['1', ['doc:1', 'doc:2', 'doc:3']])
+        .mockResolvedValueOnce(['0', ['doc:4', 'doc:5', 'doc:6']]);
+      client.hGetAll.mockImplementation(key =>
+        Promise.resolve({
+          searchQuery: `검색어-${key}`,
+          html: `<html>${key}</html>`,
+        }),
+      );
+
+      const result = await redisService.findSome(6);
+
+      expect(client.scan).toHaveBeenCalledTimes(2);
+      expect(result).toHaveLength(6);
+      expect(result[0]).toHaveProperty('searchQuery');
+      expect(result[0]).toHaveProperty('html');
+    });
+
+    it('키가 없으면 빈 배열을 반환한다', async () => {
+      client.scan.mockResolvedValue(['0', []]);
+      const result = await redisService.findSome(6);
+      expect(result).toHaveLength(0);
+    });
+
+    it('Redis SCAN에서 오류가 발생하면 예외를 던진다', async () => {
+      client.scan.mockRejectedValue(new Error('Redis SCAN 오류'));
+      await expect(redisService.findSome(6)).rejects.toThrow('Redis SCAN 오류');
     });
   });
 
   describe('searchByVector', () => {
-    it('should return search results from Redis', async () => {
-      // Mock Redis sendCommand 메서드
-      const mockResult = [
-        '2', // 검색된 총 결과 개수
-        'doc:1', // 첫 번째 문서의 키
-        ['searchQuery', '청년 주거 정책', 'html', '<html><body>내용</body></html>', 'score', '0.95'],
-        'doc:2', // 두 번째 문서의 키
-        ['searchQuery', '경제 정책', 'html', '<html><body>경제 내용</body></html>', 'score', '0.85'],
-      ];
-      client.sendCommand.mockResolvedValue(mockResult);
+    it('검색 결과가 있으면 JSON 형태로 반환한다', async () => {
+      client.sendCommand.mockResolvedValue(['1', 'doc:xxx', ['searchQuery', '청년 주거 정책', 'score', '0.95']]);
 
-      const queryEmbedding = new Float32Array(384).fill(0.5); // 검색할 벡터
-      const topK = 2; // 상위 2개 결과 반환
+      const embedding = new Float32Array(384).fill(0.5);
+      const result = await redisService.searchByVector(embedding);
 
-      // searchByVector 호출
-      const result = await searchByVector(queryEmbedding, topK);
-
-      // Redis sendCommand 호출 확인
-      expect(client.sendCommand).toHaveBeenCalledWith([
-        'FT.SEARCH',
-        'vector_index',
-        '*=>[KNN 2 @embedding $vertorData AS score]',
-        'PARAMS',
-        '2',
-        'vertorData',
-        Buffer.from(queryEmbedding.buffer),
-        'SORTBY',
-        'score',
-        'RETURN',
-        2,
-        'searchQuery',
-        'html',
-        'DIALECT',
-        '2',
-      ]);
-
-      // 결과 확인
-      expect(result).toEqual(mockResult);
-      console.log('searchByVector 테스트 성공');
+      expect(result).toEqual({
+        searchQuery: '청년 주거 정책',
+        score: 0.95,
+      });
     });
 
-    it('should throw an error if Redis sendCommand fails', async () => {
-      // Mock Redis sendCommand 메서드가 오류를 던지도록 설정
-      client.sendCommand.mockRejectedValue(new Error('Redis 검색 오류'));
+    it('검색 결과가 없으면 null을 반환한다', async () => {
+      client.sendCommand.mockResolvedValue(['0']);
+      const embedding = new Float32Array(384).fill(0.5);
+      const result = await redisService.searchByVector(embedding);
+      expect(result).toBeNull();
+    });
 
-      const queryEmbedding = new Float32Array(384).fill(0.5);
-      const topK = 2;
-
-      // searchByVector 호출 및 오류 확인
-      await expect(searchByVector(queryEmbedding, topK)).rejects.toThrow('Redis 검색 오류');
+    it('Redis 벡터 검색에서 오류가 발생하면 예외를 던진다', async () => {
+      client.sendCommand.mockRejectedValue(new Error('Redis 벡터 검색 오류'));
+      const embedding = new Float32Array(384).fill(0.5);
+      await expect(redisService.searchByVector(embedding)).rejects.toThrow('Redis 벡터 검색 오류');
     });
   });
 });

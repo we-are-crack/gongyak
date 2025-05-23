@@ -1,9 +1,5 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
 import fetch from 'node-fetch';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import redisService from '../services/redisService.js';
 
 /**
  * @description 홈 화면 렌더링 컨트롤러
@@ -24,7 +20,7 @@ export const pledges = async (req, res) => {
   }
 
   // 중복된 검색어 길이 제한 검사
-  if (handleSearchQueryLengthLimit(res, searchQuery)) return;
+  if (validSearchQueryLengthLimit(res, searchQuery)) return;
 
   const url = `http://127.0.0.1:${process.env.AI_SERVER_PORT}/query?q=${encodeURIComponent(searchQuery)}`;
   const headers = { Accept: 'application/json' };
@@ -63,15 +59,24 @@ export const pledges = async (req, res) => {
 export const share = async (req, res) => {
   let searchQuery = req.query.q || '';
 
+  // 검색어가 없으면 홈 화면으로 리다이렉트
+  if (searchQuery === '') {
+    return res.redirect('/');
+  }
+
   // 검색어 길이 제한 검사
-  if (handleSearchQueryLengthLimit(res, searchQuery)) return;
+  if (validSearchQueryLengthLimit(res, searchQuery)) return;
+
+  // 검색어가 없으면 홈 화면으로 리다이렉트
 
   // 검색어가 있으면 검색 페이지(home.pug)에 검색어를 전달
   res.render('home', { sharedQuery: searchQuery });
 };
 
-// 검색어 길이 제한 검사 및 응답 함수
-function handleSearchQueryLengthLimit(res, searchQuery) {
+/**
+ * @description 검색어 길이 제한 검사
+ */
+const validSearchQueryLengthLimit = (res, searchQuery) => {
   if (typeof searchQuery === 'string' && searchQuery.length > 50) {
     res.status(200).set('Content-Type', 'application/json; charset=utf-8').json({
       search: '',
@@ -81,4 +86,11 @@ function handleSearchQueryLengthLimit(res, searchQuery) {
     return true;
   }
   return false;
-}
+};
+
+/**
+ * @description Redis에 비슷한 검색어가 있는지 검사
+ */
+const checkSimilarSearchQuery = async searchQuery => {
+  redisService;
+};

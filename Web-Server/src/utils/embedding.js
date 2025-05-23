@@ -3,7 +3,7 @@ import { pipeline } from '@xenova/transformers';
 /**
  * 문장 임베딩 추출 함수
  * @param {string} searchQuery - 입력 문장
- * @returns {Promise<Float32Array>} - 384차원 임베딩 벡터
+ * @returns {Float32Array(384)} - 384차원 임베딩 벡터
  */
 export const getEmbedding = async searchQuery => {
   if (typeof searchQuery !== 'string' || searchQuery.trim() === '') {
@@ -17,9 +17,5 @@ export const getEmbedding = async searchQuery => {
     normalize: false,
   });
 
-  console.log('output', output.data);
-
-  const vector = output.data;
-
-  return vector;
+  return output.data;
 };
