@@ -5,7 +5,7 @@ import { pipeline } from '@xenova/transformers';
  * @param {string} searchQuery - 입력 문장
  * @returns {Float32Array(384)} - 384차원 임베딩 벡터
  */
-export const getEmbedding = async searchQuery => {
+const getEmbedding = async searchQuery => {
   if (typeof searchQuery !== 'string' || searchQuery.trim() === '') {
     throw new TypeError('searchQuery must be a non-empty string');
   }
@@ -22,3 +22,5 @@ export const getEmbedding = async searchQuery => {
     throw new Error(`임베딩 추출 실패: ${error.message}`);
   }
 };
+
+export default getEmbedding;

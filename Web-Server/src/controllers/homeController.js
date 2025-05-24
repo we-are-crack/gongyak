@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import { getEmbedding } from '../utils/embedding.js';
+import getEmbedding from '../utils/embedding.js';
 import redisService from '../services/redisService.js';
 
 /**
@@ -69,7 +69,7 @@ export const pledges = async (req, res) => {
     if (similarSearchQuery !== null) {
       const findData = await redisService.findOne(similarSearchQuery);
       htmlData = findData.htmlData;
-      rest = { search: findData.searchQuery, status: 'ok' };
+      rest = { search: searchQuery, status: 'ok' };
     } else {
       const url = `http://127.0.0.1:${process.env.AI_SERVER_PORT}/query?q=${encodeURIComponent(searchQuery)}`;
       const headers = { Accept: 'application/json' };

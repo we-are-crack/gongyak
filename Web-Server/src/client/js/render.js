@@ -1,5 +1,5 @@
-import { bindRefimgPreviewHandlers } from '/js/preview.js';
-import { bindShareButton } from '/js/share.js';
+import { bindRefimgPreviewHandlers } from './preview.js';
+import bindShareButton from './share.js';
 
 export const showLoading = results => {
   if (results.querySelector('#loading')) {
