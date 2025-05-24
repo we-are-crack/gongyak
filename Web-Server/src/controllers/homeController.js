@@ -45,7 +45,7 @@ export const home = (req, res) => {
 /**
  * @description AI 서버에 쿼리를 보내고 결과를 반환하는 컨트롤러
  */
-export const pledges = async (req, res) => {
+export const search = async (req, res) => {
   const searchQuery = req.query.q || '';
 
   // 브라우저에서 직접 접근 시 안내 메시지 반환 (400.pug 렌더)
@@ -71,7 +71,13 @@ export const pledges = async (req, res) => {
       htmlData = findData.htmlData;
       rest = { search: searchQuery, status: 'ok' };
     } else {
-      const url = `http://127.0.0.1:${process.env.AI_SERVER_PORT}/query?q=${encodeURIComponent(searchQuery)}`;
+      const q = encodeURIComponent(searchQuery);
+      const url =
+        process.env.NODE_ENV === 'development'
+          ? `${process.env.TEST_AI_SERVER_URL}?q=${q}`
+          : `${process.env.AI_SERVER_URL}?q=${q}`;
+      console.log(process.env.NODE_ENV);
+      console.log('AI 서버 URL:', url);
       const headers = { Accept: 'application/json' };
       const response = await fetch(url, { headers });
 

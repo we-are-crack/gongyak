@@ -1,10 +1,14 @@
-import { bindRefimgPreviewHandlers } from './preview.js';
+import bindRefimgPreviewHandlers from './preview.js';
 import bindShareButton from './share.js';
 
-export const showLoading = results => {
+export const deleteLoading = results => {
   if (results.querySelector('#loading')) {
     results.querySelector('#loading').remove();
   }
+};
+
+export const showLoading = results => {
+  deleteLoading(results);
 
   const loadingTemplate = document.getElementById('loadingTemplate').content.cloneNode(true);
   results.appendChild(loadingTemplate);
@@ -15,26 +19,26 @@ export const renderResults = (results, searchKeyword, htmlData, append) => {
     append = false;
   }
 
-  const keywordTemplate = document.getElementById('searchKeywordTemplate');
-  let keywordNode = null;
+  const searchQueryTemplate = document.getElementById('searchQueryTemplate');
+  let searchQuery = null;
 
-  if (keywordTemplate) {
-    keywordNode = keywordTemplate.content.cloneNode(true);
-    const valueSpan = keywordNode.querySelector('.search-keyword-value');
+  if (searchQueryTemplate) {
+    searchQuery = searchQueryTemplate.content.cloneNode(true);
+    const valueSpan = searchQuery.querySelector('.search-keyword-value');
     if (valueSpan) {
       valueSpan.textContent = searchKeyword;
     }
   }
 
   if (append) {
-    if (keywordNode) {
-      results.appendChild(keywordNode);
+    if (searchQuery) {
+      results.appendChild(searchQuery);
     }
     results.innerHTML += htmlData;
   } else {
     results.innerHTML = '';
-    if (keywordNode) {
-      results.appendChild(keywordNode);
+    if (searchQuery) {
+      results.appendChild(searchQuery);
     }
     results.innerHTML += htmlData;
   }

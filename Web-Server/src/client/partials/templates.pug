@@ -13,12 +13,20 @@ template#errorTemplate
 template#noResultsTemplate
   p.text-red-500 해당 공약과 관련된 정보를 찾을 수 없습니다.
 
-template#reSearchTemplate
-  .re-search.w-full.flex.flex-col.items-center.mt-8
-    p.text-gray-600.mb-2.text-center 다시 검색하시겠습니까?
+template#searchInputTemplate
+  .search-input-wrapper.w-full.flex.flex-col.items-center.mt-8
     .search-box.flex.justify-center.w-full
-      input#reSearchInput.p-3.w-full.max-w-md.rounded-l-lg.border.border-gray-300.focus-outline-none(type="text", maxlength="50", placeholder="다른 공약 검색")
-      button#reSearchButton.p-3.bg-purple-500.text-white.rounded-r-lg.hover-bg-purple-600.flex.items-center.gap-2.font-semibold.transition
+      input.search-input.p-3.w-full.max-w-md.rounded-l-lg.border.border-gray-300.focus-outline-none(
+        type="text",
+        maxlength="50",
+        id="searchInput",
+        placeholder="예: 청년 정책이 궁금해요"
+      )
+      button.search-button.p-3.bg-purple-500.text-white.rounded-r-lg.hover-bg-purple-600.flex.items-center.gap-2.font-semibold.transition(
+        id="searchButton",
+        type="button"
+      )
+        | 검색
         svg.w-5.h-5(fill="none", stroke="currentColor", stroke-width="2.2", viewBox="0 0 24 24")
           circle(cx="11", cy="11", r="7", stroke="currentColor")
           path(d="M21 21l-3.5-3.5", stroke="currentColor", stroke-linecap="round")
@@ -26,7 +34,7 @@ template#reSearchTemplate
 template#invalidSearchTemplate
   p.text-red-500 대선 공약과 관련된 내용만 검색해 주세요.
 
-template#searchKeywordTemplate
+template#searchQueryTemplate
   .search-keyword.mb-4.flex.items-center.justify-between
     .flex.items-center
       span.search-keyword-label.font-semibold.text-purple-700.mr-2 검색어
