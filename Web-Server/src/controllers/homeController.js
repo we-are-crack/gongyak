@@ -2,24 +2,19 @@ import fetch from 'node-fetch';
 import getEmbedding from '../utils/embedding.js';
 import redisService from '../services/redisService.js';
 
-/**
- * @description 검색어 길이 제한 검사
- */
+// 검색어 길이 제한 검사
 const validSearchQueryLengthLimit = (res, searchQuery) => {
   if (typeof searchQuery === 'string' && searchQuery.length > 50) {
-    res.status(200).set('Content-Type', 'application/json; charset=utf-8').json({
-      search: '',
+    res.status(400).set('Content-Type', 'application/json; charset=utf-8').json({
       status: 'tooLong',
-      htmlData: '',
+      message: '검색어는 50자 이내로 입력해 주세요.',
     });
     return true;
   }
   return false;
 };
 
-/**
- * @description Redis에 비슷한 검색어가 있는지 검사
- */
+// Redis에서 비슷한 검색어가 있는지 검사
 const checkSimilarSearchQuery = async enbedding => {
   try {
     const { searchQuery, score } = (await redisService.searchByVector(enbedding)) || {};
@@ -31,20 +26,52 @@ const checkSimilarSearchQuery = async enbedding => {
 
     return null;
   } catch (error) {
-    console.error(error);
+    throw new Error('Redis 장애: ' + error.message);
   }
 };
 
-/**
- * @description 홈 화면 렌더링 컨트롤러
- */
+// 공통 에러 응답 함수
+const sendError = (res, { status = 'error', message = '서버 오류가 발생했습니다.', code = 500 }) => {
+  res.status(code).set('Content-Type', 'application/json; charset=utf-8').json({ status, message, code });
+};
+
+// AI 서버에 검색어를 보내고 결과를 받아오는 함수
+const fetchAIServer = async searchQuery => {
+  const q = encodeURIComponent(searchQuery);
+  const url =
+    process.env.NODE_ENV === 'development'
+      ? `${process.env.TEST_AI_SERVER_URL}?q=${q}`
+      : `${process.env.AI_SERVER_URL}?q=${q}`;
+  const headers = { Accept: 'application/json' };
+
+  try {
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+      // AI 서버가 4xx/5xx 응답 시
+      console.error(`AI 서버 응답 오류: ${response.status}`);
+      return {
+        error: true,
+        status: 'aiServerError',
+      };
+    }
+    const data = await response.json();
+    return { error: false, data };
+  } catch (err) {
+    // 네트워크 장애 등
+    console.error('AI 서버 통신 실패:', err);
+    return {
+      error: true,
+      status: 'aiServerError',
+    };
+  }
+};
+
+// 홈 화면을 렌더링하는 컨트롤러
 export const home = (req, res) => {
   res.render('home');
 };
 
-/**
- * @description AI 서버에 쿼리를 보내고 결과를 반환하는 컨트롤러
- */
+// AI 서버에 쿼리를 보내고 결과를 반환하는 컨트롤러
 export const search = async (req, res) => {
   const searchQuery = req.query.q || '';
 
@@ -71,21 +98,26 @@ export const search = async (req, res) => {
       htmlData = findData.htmlData;
       rest = { search: searchQuery, status: 'ok' };
     } else {
-      const q = encodeURIComponent(searchQuery);
-      const url =
-        process.env.NODE_ENV === 'development'
-          ? `${process.env.TEST_AI_SERVER_URL}?q=${q}`
-          : `${process.env.AI_SERVER_URL}?q=${q}`;
-      console.log(process.env.NODE_ENV);
-      console.log('AI 서버 URL:', url);
-      const headers = { Accept: 'application/json' };
-      const response = await fetch(url, { headers });
-
-      if (!response.ok) {
-        throw new Error(`AI 서버 응답 오류: ${response.status}`);
+      const aiResult = await fetchAIServer(searchQuery);
+      if (aiResult.error) {
+        return sendError(res, {
+          status: aiResult.status,
+        });
       }
 
-      const data = await response.json();
+      const { data } = aiResult;
+
+      if (data.status === 'invalid') {
+        return sendError(res, {
+          status: 'invalid',
+          message: '대선 공약과 관련된 내용만 검색해 주세요.',
+          code: 400,
+        });
+      }
+
+      if (typeof htmlData !== 'string') {
+        return sendError(res);
+      }
 
       htmlData = data.htmlData.substring(7, data.htmlData.length - 3);
       rest = { search: data.search, status: data.status };
@@ -100,17 +132,15 @@ export const search = async (req, res) => {
       .json({ ...rest, htmlData });
   } catch (error) {
     console.error(error);
-    res.status(500).set('Content-Type', 'application/json; charset=utf-8').json({
-      search: '',
-      status: 'error',
-      htmlData: '',
+    sendError(res, {
+      message: error.message,
+      status: error.status || 'error',
+      code: error.code || 500,
     });
   }
 };
 
-/**
- * @description 공유 요청을 처리하는 컨트롤러
- */
+// 공유 요청을 처리하는 컨트롤러
 export const share = (req, res) => {
   const searchQuery = req.query.q || '';
 

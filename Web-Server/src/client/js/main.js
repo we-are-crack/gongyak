@@ -21,17 +21,20 @@ document.addEventListener('DOMContentLoaded', () => {
   Kakao.isInitialized();
 
   // 공유 링크로 접근 시 자동 검색 실행 (data attribute에서 값 읽기)
-  const sharedQueryElem = document.getElementById('shared-query');
-  const sharedQuery = sharedQueryElem ? sharedQueryElem.getAttribute('data-shared-query') : null;
-  if (sharedQuery) {
-    if (searchInput) {
-      searchInput.value = sharedQuery;
-      // 자동 검색 실행 딜레이를 1초로 늘림 (서버 부하 방지)
-      setTimeout(() => {
-        if (searchButton) searchButton.click();
-      }, 1000);
+  setTimeout(() => {
+    const sharedQueryElem = document.getElementById('shared-query');
+    const sharedQuery = sharedQueryElem ? sharedQueryElem.getAttribute('data-shared-query') : null;
+
+    if (sharedQuery) {
+      const searchInput = document.getElementById('searchInput');
+      const searchButton = document.getElementById('searchButton');
+
+      if (searchInput && searchButton) {
+        searchInput.value = sharedQuery;
+        searchButton.click();
+      }
     }
-  }
+  }, 1000);
 
   bindRefimgPreviewHandlers();
 });

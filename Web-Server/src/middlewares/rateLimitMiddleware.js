@@ -1,3 +1,4 @@
+/* eslint-disable import/prefer-default-export */
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 
@@ -15,7 +16,8 @@ export const rateLimitMiddleware = rateLimit({
     req.path.startsWith('/assets/') ||
     req.path.startsWith('/images/'),
   message: {
-    status: 'error',
+    status: 'tooManyRequests',
+    code: 429,
     message: '너무 많은 요청을 보냈습니다. 잠시 후 다시 시도해주세요.',
   },
 });

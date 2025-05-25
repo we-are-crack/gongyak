@@ -1,13 +1,21 @@
 /* eslint-disable no-use-before-define */
-import { renderResults, showLoading, deleteLoading } from './render.js';
+import { renderResults, showLoading, deleteLoading } from './rendering.js';
 
 // 검색 API 호출
 async function fetchSearchResults(input) {
   const response = await fetch(`/search?q=${encodeURIComponent(input)}`);
   if (!response.ok) {
-    throw new Error(response.statusText);
+    let errorData;
+    try {
+      errorData = await response.json();
+    } catch {
+      errorData = { message: response.statusText };
+    }
+    const error = new Error(errorData.message || response.statusText);
+    error.status = response.status;
+    Object.assign(error, errorData);
+    throw error;
   }
-
   return response.json();
 }
 
@@ -56,8 +64,14 @@ function handleError(message, results) {
   renderSearchInput(results);
 }
 
+let isSearching = false;
+
 // 검색 실행
 export async function handleSearch() {
+  // 이미 검색 중인 경우 중복 실행 방지
+  if (isSearching) return;
+  isSearching = true;
+
   try {
     const inputElem = document.querySelector('.search-input');
     if (!inputElem) throw new Error('검색 입력창을 찾을 수 없습니다.');
@@ -76,25 +90,22 @@ export async function handleSearch() {
 
     if (document.getElementById('loading')) document.getElementById('loading').remove();
 
-    if (data.status === 'invalid') {
-      handleError('대선 공약과 관련된 내용만 검색해 주세요.', results);
-    } else if (data.status === 'tooLong') {
-      handleError('검색어는 50자 이내로 입력해 주세요.', results);
-    } else if (data.status === 'error') {
-      handleError('검색 결과를 불러오지 못했습니다. 잠시 후 다시 시도하거나, 다른 검색어로 시도해보세요.', results);
-    } else {
-      renderResults(results, data.search, data.htmlData, true);
-      renderSearchInput(results);
-    }
+    renderResults(results, data.search, data.htmlData, true);
+    renderSearchInput(results);
   } catch (err) {
     const results = document.getElementById('results');
-    if (err.status === 429) {
-      handleError('요청이 너무 많습니다. 잠시 후 다시 시도해주세요.', results);
-    } else {
-      console.error('검색 중 오류 발생:', err);
+    if (err.status === 'invalid') {
+      handleError('대선 공약과 관련된 내용만 검색해 주세요.', results);
+    } else if (err.status === 'tooLong') {
+      handleError('검색어는 50자 이내로 입력해 주세요.', results);
+    } else if (err.status === 'tooMayRequests') {
       handleError('검색 결과를 불러오지 못했습니다. 잠시 후 다시 시도하거나, 다른 검색어로 시도해보세요.', results);
+    } else {
+      console.error('서버 오류 발생:', err);
+      handleError(err.message || '잠시 후 다시 시도해주세요.', results);
     }
   } finally {
+    isSearching = false;
     deleteLoading(document.getElementById('results'));
   }
 }
