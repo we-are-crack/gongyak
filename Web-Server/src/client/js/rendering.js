@@ -25,7 +25,11 @@ export const renderResults = (results, searchKeyword, htmlData) => {
   if (searchQueryTemplate) {
     const searchQuery = searchQueryTemplate.content.cloneNode(true);
     const valueSpan = searchQuery.querySelector('.search-keyword-value');
-    if (valueSpan) valueSpan.textContent = searchKeyword;
+
+    if (valueSpan) {
+      valueSpan.textContent = searchKeyword;
+    }
+
     results.appendChild(searchQuery);
   }
 

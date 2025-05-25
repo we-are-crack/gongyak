@@ -3,7 +3,7 @@ import { renderResults, showLoading, deleteLoading } from './rendering.js';
 
 // 검색 API 호출
 async function fetchSearchResults(input) {
-  const response = await fetch(`/search?q=${encodeURIComponent(input)}`);
+  const response = await fetch(`/api/search?q=${encodeURIComponent(input)}`);
   if (!response.ok) {
     let errorData;
     try {

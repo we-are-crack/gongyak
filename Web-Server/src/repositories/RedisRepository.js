@@ -1,17 +1,13 @@
 import client from '../config/redisConfig.js';
 
-class RedisService {
-  constructor() {
-    this.client = client;
-  }
-
+export default class RedisRepository {
   /**
    * 데이터 저장
    * @param {String} searchQuery - 검색어
    * @param {Float32Array} embedding - 384차원 벡터
    * @param {String} htmlData - html 데이터
    */
-  async save(searchQuery, embedding, htmlData) {
+  static async save(searchQuery, embedding, htmlData) {
     try {
       const key = `doc:${searchQuery}`;
       await client.hSet(key, {
@@ -35,7 +31,7 @@ class RedisService {
    * @param {String} searchQuery - 검색어
    * @returns {Object} - 검색어, html 데이터
    */
-  async findOne(searchQuery) {
+  static async findOne(searchQuery) {
     try {
       const key = `doc:${searchQuery}`;
       const result = await client.hGetAll(key);
@@ -59,13 +55,14 @@ class RedisService {
    * @param {Number} limit - 조회할 결과 개수
    * @returns {Array} - {검색어, html 데이터} 리스트
    */
-  async findSome(limit = 6) {
+  static async findSome(limit = 6) {
     try {
       let cursor = '0';
       let keys = [];
 
       // SCAN으로 최대 limit개 키만 수집
       do {
+        // eslint-disable-next-line no-await-in-loop
         const [nextCursor, foundKeys] = await client.scan(cursor, { MATCH: 'doc:*', COUNT: limit });
         cursor = nextCursor;
         keys = keys.concat(foundKeys);
@@ -94,7 +91,7 @@ class RedisService {
    * @param {Float32Array} queryEmbedding - 검색할 벡터
    * @returns {Object} - 검색어, 점수
    */
-  async searchByVector(queryEmbedding) {
+  static async searchByVector(queryEmbedding) {
     try {
       const topK = 1; // 반환할 상위 결과 개수
       const indexName = 'vector_index';
@@ -154,5 +151,3 @@ class RedisService {
     }
   }
 }
-
-export default new RedisService();

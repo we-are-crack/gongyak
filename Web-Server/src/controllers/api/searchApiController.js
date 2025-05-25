@@ -1,14 +1,14 @@
 /* eslint-disable import/prefer-default-export */
 import fetch from 'node-fetch';
-import redisService from '../services/redisService.js';
-import getEmbedding from '../utils/embedding.js';
-import sendError from '../utils/errorHandler.js';
-import { validSearchQueryLengthLimit } from '../utils/validation.js';
+import RedisRepository from '../../repositories/RedisRepository.js';
+import getEmbedding from '../../utils/embedding.js';
+import sendError from '../../utils/errorHandler.js';
+import { validSearchQueryLengthLimit } from '../../utils/validation.js';
 
 // Redis에서 비슷한 검색어가 있는지 검사
 const checkSimilarSearchQuery = async enbedding => {
   try {
-    const { searchQuery, score } = (await redisService.searchByVector(enbedding)) || {};
+    const { searchQuery, score } = (await RedisRepository.searchByVector(enbedding)) || {};
 
     // Redis에 비슷한 검색어가 있고, 벡터 검색 시 코사인 유사도 점수가 0.8 이상이면 비슷한 검색어 존재
     if (searchQuery != null && score > 0.9) {
@@ -75,7 +75,7 @@ export const search = async (req, res) => {
 
     // Redis에 비슷한 검색어가 있으면 Redis에서 데이터 가져오기
     if (similarSearchQuery !== null) {
-      const findData = await redisService.findOne(similarSearchQuery);
+      const findData = await RedisRepository.findOne(similarSearchQuery);
       htmlData = findData.htmlData;
       rest = { search: searchQuery, status: 'ok' };
     } else {
@@ -105,7 +105,7 @@ export const search = async (req, res) => {
       rest = { search: data.search, status: data.status };
 
       // Redis에 검색어와 HTML 데이터 저장
-      await redisService.save(searchQuery, embedding, htmlData);
+      await RedisRepository.save(searchQuery, embedding, htmlData);
     }
 
     res

@@ -1,8 +1,10 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import rootRouter from './routes/homeRouter.js';
 import dotenv from 'dotenv';
+import rootRouter from './routes/homeRouter.js';
+import apiRouter from './routes/apiRouter.js';
+
 import {
   staticMiddleware,
   helmetMiddleware,
@@ -37,5 +39,6 @@ app.use(corsMiddleware);
 app.use(requestLoggerMiddleware);
 
 app.use('/', rootRouter);
+app.use('/api', apiRouter);
 
 export default app;
