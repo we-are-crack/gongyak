@@ -1,5 +1,7 @@
-import { jest } from '@jest/globals.js';
-import redisService from '../../services/redisService.js';
+/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable import/no-unresolved */
+import { jest } from '@jest/globals';
+import RedisRepository from '../../repositories/RedisRepository.js';
 import client from '../../config/redisConfig.js';
 
 // Redis 클라이언트 Mock 설정
@@ -10,7 +12,7 @@ client.scan = jest.fn();
 client.sendCommand = jest.fn();
 client.quit = jest.fn();
 
-describe('RedisService', () => {
+describe('RedisRepository', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -28,7 +30,7 @@ describe('RedisService', () => {
       const embedding = new Float32Array(384).fill(0.5);
       const htmlData = '<html><body>청년 주거 정책 내용</body></html>';
 
-      await redisService.save(searchQuery, embedding, htmlData);
+      await RedisRepository.save(searchQuery, embedding, htmlData);
 
       expect(client.hSet).toHaveBeenCalledWith(`doc:${searchQuery}`, {
         searchQuery,
@@ -46,7 +48,7 @@ describe('RedisService', () => {
       const embedding = new Float32Array(384).fill(0.5);
       const htmlData = '<html><body>청년 주거 정책 내용</body></html>';
 
-      await expect(redisService.save(searchQuery, embedding, htmlData)).rejects.toThrow('Redis 저장 오류');
+      await expect(RedisRepository.save(searchQuery, embedding, htmlData)).rejects.toThrow('Redis 저장 오류');
     });
   });
 
@@ -57,7 +59,7 @@ describe('RedisService', () => {
         htmlData: '<html><body>청년 주거 정책 내용</body></html>',
       });
 
-      const result = await redisService.findOne('청년 주거 정책');
+      const result = await RedisRepository.findOne('청년 주거 정책');
       expect(result).toEqual({
         searchQuery: '청년 주거 정책',
         htmlData: '<html><body>청년 주거 정책 내용</body></html>',
@@ -66,13 +68,13 @@ describe('RedisService', () => {
 
     it('데이터가 존재하지 않으면 null을 반환한다', async () => {
       client.hGetAll.mockResolvedValue({});
-      const result = await redisService.findOne('없는 검색어');
+      const result = await RedisRepository.findOne('없는 검색어');
       expect(result).toBeNull();
     });
 
     it('Redis에서 오류가 발생하면 예외를 던진다', async () => {
       client.hGetAll.mockRejectedValue(new Error('Redis 조회 오류'));
-      await expect(redisService.findOne('검색어')).rejects.toThrow('Redis 조회 오류');
+      await expect(RedisRepository.findOne('검색어')).rejects.toThrow('Redis 조회 오류');
     });
   });
 
@@ -89,50 +91,49 @@ describe('RedisService', () => {
         }),
       );
 
-      const result = await redisService.findSome(6);
+      const result = await RedisRepository.findSome(6);
 
       expect(client.scan).toHaveBeenCalledTimes(2);
       expect(result).toHaveLength(6);
-      expect(result[0]).toHaveProperty('searchQuery');
-      expect(result[0]).toHaveProperty('htmlData');
     });
 
     it('키가 없으면 빈 배열을 반환한다', async () => {
       client.scan.mockResolvedValue(['0', []]);
-      const result = await redisService.findSome(6);
+      const result = await RedisRepository.findSome(6);
       expect(result).toHaveLength(0);
     });
 
     it('Redis SCAN에서 오류가 발생하면 예외를 던진다', async () => {
       client.scan.mockRejectedValue(new Error('Redis SCAN 오류'));
-      await expect(redisService.findSome(6)).rejects.toThrow('Redis SCAN 오류');
+      await expect(RedisRepository.findSome(6)).rejects.toThrow('Redis SCAN 오류');
     });
   });
 
   describe('searchByVector', () => {
     it('검색 결과가 있으면 JSON 형태로 반환한다', async () => {
-      client.sendCommand.mockResolvedValue(['1', 'doc:xxx', ['searchQuery', '청년 주거 정책', 'score', '0.95']]);
+      // Redis FT.SEARCH 결과 예시: [ '1', 'doc:xxx', [ 'searchQuery', '청년 주거 정책', 'score', '0.05' ] ]
+      client.sendCommand.mockResolvedValue(['1', 'doc:xxx', ['searchQuery', '청년 주거 정책', 'score', '0.05']]);
 
       const embedding = new Float32Array(384).fill(0.5);
-      const result = await redisService.searchByVector(embedding);
+      const result = await RedisRepository.searchByVector(embedding);
 
       expect(result).toEqual({
         searchQuery: '청년 주거 정책',
-        score: 0.95,
+        score: 0.95, // 1 - 0.05
       });
     });
 
     it('검색 결과가 없으면 null을 반환한다', async () => {
       client.sendCommand.mockResolvedValue(['0']);
       const embedding = new Float32Array(384).fill(0.5);
-      const result = await redisService.searchByVector(embedding);
+      const result = await RedisRepository.searchByVector(embedding);
       expect(result).toBeNull();
     });
 
     it('Redis 벡터 검색에서 오류가 발생하면 예외를 던진다', async () => {
       client.sendCommand.mockRejectedValue(new Error('Redis 벡터 검색 오류'));
       const embedding = new Float32Array(384).fill(0.5);
-      await expect(redisService.searchByVector(embedding)).rejects.toThrow('Redis 벡터 검색 오류');
+      await expect(RedisRepository.searchByVector(embedding)).rejects.toThrow('Redis 벡터 검색 오류');
     });
   });
 });

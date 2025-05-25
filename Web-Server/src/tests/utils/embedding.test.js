@@ -1,5 +1,6 @@
-import { getEmbedding } from '../../utils/embedding.js';
+/* eslint-disable import/no-extraneous-dependencies */
 import { jest } from '@jest/globals';
+import getEmbedding from '../../utils/embedding.js';
 
 jest.setTimeout(10000); // 10초로 전체 테스트 타임아웃 증가
 
@@ -13,7 +14,7 @@ Array.isArray = jest.fn(type => {
   return originalImplementation(type);
 });
 
-describe('getEmbedding', () => {
+describe('embedding', () => {
   it('should return a 384-dimensional embedding vector', async () => {
     const searchQuery = '테스트 문장';
     const embedding = await getEmbedding(searchQuery);

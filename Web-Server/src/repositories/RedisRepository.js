@@ -63,7 +63,17 @@ export default class RedisRepository {
       // SCAN으로 최대 limit개 키만 수집
       do {
         // eslint-disable-next-line no-await-in-loop
-        const [nextCursor, foundKeys] = await client.scan(cursor, { MATCH: 'doc:*', COUNT: limit });
+        const scanResult = await client.scan(cursor, { MATCH: 'doc:*', COUNT: limit });
+        let nextCursor;
+        let foundKeys;
+        if (Array.isArray(scanResult)) {
+          [nextCursor, foundKeys] = scanResult;
+        } else if (scanResult && typeof scanResult === 'object' && 'cursor' in scanResult && 'keys' in scanResult) {
+          nextCursor = scanResult.cursor;
+          foundKeys = scanResult.keys;
+        } else {
+          throw new Error('Redis SCAN 결과 형식이 올바르지 않습니다.');
+        }
         cursor = nextCursor;
         keys = keys.concat(foundKeys);
       } while (keys.length < limit && cursor !== '0');
@@ -72,14 +82,10 @@ export default class RedisRepository {
 
       const selectedKeys = keys.slice(0, limit);
 
-      // 여러 키의 데이터를 병렬로 조회
-      const results = await Promise.all(selectedKeys.map(key => client.hGetAll(key)));
+      const searchQueryList = selectedKeys.map(key => key.replace('doc:', ''));
 
       // 바로 변환해서 반환
-      return results.map(data => ({
-        searchQuery: data.searchQuery,
-        htmlData: data.htmlData,
-      }));
+      return searchQueryList;
     } catch (error) {
       console.error('Redis 일부 검색 결과 조회 오류:', error);
       throw error;

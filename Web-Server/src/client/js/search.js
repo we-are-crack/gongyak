@@ -1,5 +1,6 @@
 /* eslint-disable no-use-before-define */
-import { renderResults, showLoading, deleteLoading } from './rendering.js';
+import { renderResults, showLoading, deleteLoading } from './results.js';
+import renderRecommendedSearchQueryList from './recomendedSearch.js';
 
 // 검색 API 호출
 async function fetchSearchResults(input) {
@@ -58,6 +59,20 @@ function renderSearchInput(results) {
   results.appendChild(node);
 }
 
+// 검색 결과와 추천 검색어 렌더링
+function renderInputAndRecommended(results) {
+  renderSearchInput(results);
+
+  // 기존 추천 search query 컨테이너 제거
+  const existing = results.querySelector('.recommended-search-query-container');
+  if (existing) existing.remove();
+
+  renderRecommendedSearchQueryList(results, keyword => {
+    document.querySelector('.search-input').value = keyword;
+    handleSearch();
+  });
+}
+
 // 에러 메시지 처리
 function handleError(message, results) {
   alert(message);
@@ -91,7 +106,7 @@ export async function handleSearch() {
     if (document.getElementById('loading')) document.getElementById('loading').remove();
 
     renderResults(results, data.search, data.htmlData, true);
-    renderSearchInput(results);
+    renderInputAndRecommended(results);
   } catch (err) {
     const results = document.getElementById('results');
     if (err.status === 'invalid') {
@@ -113,5 +128,5 @@ export async function handleSearch() {
 // 초기 진입 시 검색창 렌더링
 export function initSearch() {
   const results = document.getElementById('results');
-  renderSearchInput(results);
+  renderInputAndRecommended(results);
 }

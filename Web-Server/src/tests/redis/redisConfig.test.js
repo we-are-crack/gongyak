@@ -1,5 +1,5 @@
-import redisClient from '../../config/redisConfig.js';
 import { createClient } from 'redis';
+import redisClient from '../../config/redisConfig.js';
 
 describe('Redis Config', () => {
   afterAll(async () => {
