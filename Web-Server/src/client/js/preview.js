@@ -1,4 +1,4 @@
-export const bindRefimgPreviewHandlers = () => {
+export default function bindRefimgPreviewHandlers() {
   document.querySelectorAll('.candidate-card a.refimg').forEach(link => {
     if (link.dataset.refimgBound) {
       return;
@@ -30,4 +30,4 @@ export const bindRefimgPreviewHandlers = () => {
       }
     });
   });
-};
+}

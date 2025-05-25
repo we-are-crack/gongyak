@@ -1,176 +1,132 @@
-import { renderResults, showLoading } from '/js/render.js';
+/* eslint-disable no-use-before-define */
+import { renderResults, showLoading, deleteLoading } from './results.js';
+import renderRecommendedSearchQueryList from './recomendedSearch.js';
+
+// 검색 API 호출
+async function fetchSearchResults(input) {
+  const response = await fetch(`/api/search?q=${encodeURIComponent(input)}`);
+  if (!response.ok) {
+    let errorData;
+    try {
+      errorData = await response.json();
+    } catch {
+      errorData = { message: response.statusText };
+    }
+    const error = new Error(errorData.message || response.statusText);
+    error.status = response.status;
+    Object.assign(error, errorData);
+    throw error;
+  }
+  return response.json();
+}
+
+// 입력값 검증
+function validateInput(input) {
+  const trimmed = input.trim().toLowerCase();
+  if (!trimmed) return { valid: false, message: '검색어를 입력해주세요.' };
+  if (trimmed.length > 50) return { valid: false, message: '검색어는 50자 이내로 입력해 주세요.' };
+  return { valid: true, value: trimmed };
+}
+
+// 기존 입력창 제거
+function removeExistingInput(results) {
+  const existing = results.querySelector('.search-input-wrapper');
+  if (existing) existing.remove();
+}
+
+// 입력창 렌더링 및 이벤트 바인딩 (초기/재검색 구분 없이 항상 동일)
+function renderSearchInput(results) {
+  removeExistingInput(results);
+
+  const tpl = document.getElementById('searchInputTemplate');
+  if (!tpl) return;
+
+  const node = tpl.content.cloneNode(true);
+  const input = node.querySelector('.search-input');
+  const button = node.querySelector('.search-button');
+
+  input.placeholder = '예: 청년 주거 정책이 궁금해요';
+  button.textContent = '검색';
+  input.id = 'searchInput';
+  button.id = 'searchButton';
+
+  input.maxLength = 50;
+  input.onkeydown = e => {
+    if (e.key === 'Enter') handleSearch();
+  };
+  button.onclick = () => handleSearch();
+
+  results.appendChild(node);
+}
+
+// 검색 결과와 추천 검색어 렌더링
+function renderInputAndRecommended(results) {
+  renderSearchInput(results);
+
+  // 기존 추천 search query 컨테이너 제거
+  const existing = results.querySelector('.recommended-search-query-container');
+  if (existing) existing.remove();
+
+  renderRecommendedSearchQueryList(results, keyword => {
+    document.querySelector('.search-input').value = keyword;
+    handleSearch();
+  });
+}
+
+// 에러 메시지 처리
+function handleError(message, results) {
+  alert(message);
+  renderSearchInput(results);
+}
 
 let isSearching = false;
 
-export const setSearchUIEnabled = enabled => {
-  const searchInput = document.getElementById('searchInput');
-  const searchButton = document.getElementById('searchButton');
-
-  if (searchInput) {
-    searchInput.disabled = !enabled;
-  }
-
-  if (searchButton) {
-    searchButton.disabled = !enabled;
-  }
-
-  const reSearchInput = document.getElementById('reSearchInput');
-  const reSearchButton = document.getElementById('reSearchButton');
-
-  if (reSearchInput) {
-    reSearchInput.disabled = !enabled;
-  }
-
-  if (reSearchButton) {
-    reSearchButton.disabled = !enabled;
-  }
-};
-
-export const resetResults = results => {
-  if (results.querySelector('#loading')) {
-    results.querySelector('#loading').remove();
-  }
-
-  if (results.querySelector('.text-red-500')) {
-    results.querySelector('.text-red-500').remove();
-  }
-};
-
-export const search = async (inputId, append) => {
-  if (typeof append === 'undefined') {
-    append = false;
-  }
-
-  if (isSearching) {
-    return;
-  }
-
+// 검색 실행
+export async function handleSearch() {
+  // 이미 검색 중인 경우 중복 실행 방지
+  if (isSearching) return;
   isSearching = true;
-  setSearchUIEnabled(false);
 
   try {
-    const inputElem = document.getElementById(inputId);
+    const inputElem = document.querySelector('.search-input');
+    if (!inputElem) throw new Error('검색 입력창을 찾을 수 없습니다.');
 
-    if (!inputElem) {
-      throw new Error('검색 입력창을 찾을 수 없습니다.');
-    }
-
-    let input = inputElem.value.trim().toLowerCase();
-
-    if (input.length > 50) {
-      input = input.slice(0, 50);
-    }
-
-    inputElem.value = input;
-
-    if (!input) {
-      alert('검색어를 입력해주세요.');
+    const { valid, value, message } = validateInput(inputElem.value);
+    if (!valid) {
+      handleError(message, document.getElementById('results'));
       return;
     }
+    inputElem.value = value;
 
     const results = document.getElementById('results');
-    const initialBox = document.getElementById('initialSearchBox');
-
     showLoading(results);
 
-    if (inputId === 'searchInput') {
-      initialBox.classList.add('hidden');
-    }
+    const data = await fetchSearchResults(value);
 
-    const response = await fetch(`/pledges?q=${encodeURIComponent(input)}`);
+    if (document.getElementById('loading')) document.getElementById('loading').remove();
 
-    if (response.status === 429) {
-      const data = await response.json();
-
-      if (document.getElementById('loading')) {
-        document.getElementById('loading').remove();
-      }
-
-      alert(data.message || '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.');
-      appendReSearch(results);
-
-      // 일정 시간 후 버튼 다시 활성화 (예: 3초)
-      setTimeout(() => {
-        setSearchUIEnabled(true);
-      }, 3000);
-
-      return;
-    }
-
-    if (!response.ok) {
-      throw new Error('API 호출 오류');
-    }
-
-    const data = await response.json();
-
-    if (document.getElementById('loading')) {
-      document.getElementById('loading').remove();
-    }
-
-    if (data.status === 'invalid') {
-      alert('대선 공약과 관련된 내용만 검색해 주세요.');
-      appendReSearch(results);
-      return;
-    } else if (data.status === 'tooLong') {
-      alert('검색어는 50자 이내로 입력해 주세요.');
-      appendReSearch(results);
-      return;
-    } else if (data.status === 'error') {
-      alert('검색 결과를 불러오지 못했습니다. 잠시 후 다시 시도하거나, 다른 검색어로 시도해보세요.');
-      appendReSearch(results);
-      return;
-    } else {
-      renderResults(results, data.search, data.htmlData, append);
-      appendReSearch(results);
-    }
-  } catch (error) {
-    console.error(error);
-
-    if (document.getElementById('loading')) {
-      document.getElementById('loading').remove();
-    }
-
-    alert('검색 결과를 불러오지 못했습니다. 잠시 후 다시 시도하거나, 다른 검색어로 시도해보세요.');
+    renderResults(results, data.search, data.htmlData, true);
+    renderInputAndRecommended(results);
+  } catch (err) {
     const results = document.getElementById('results');
-
-    if (results) {
-      appendReSearch(results);
+    if (err.status === 'invalid') {
+      handleError('대선 공약과 관련된 내용만 검색해 주세요.', results);
+    } else if (err.status === 'tooLong') {
+      handleError('검색어는 50자 이내로 입력해 주세요.', results);
+    } else if (err.status === 'tooMayRequests') {
+      handleError('검색 결과를 불러오지 못했습니다. 잠시 후 다시 시도하거나, 다른 검색어로 시도해보세요.', results);
+    } else {
+      console.error('서버 오류 발생:', err);
+      handleError(err.message || '잠시 후 다시 시도해주세요.', results);
     }
   } finally {
     isSearching = false;
-    setSearchUIEnabled(true);
+    deleteLoading(document.getElementById('results'));
   }
-};
+}
 
-export const appendReSearch = results => {
-  const existingReSearch = results.querySelector('.re-search');
-
-  if (existingReSearch) {
-    existingReSearch.remove();
-  }
-
-  const reSearchTemplate = document.getElementById('reSearchTemplate');
-
-  if (!reSearchTemplate) {
-    return;
-  }
-
-  results.appendChild(reSearchTemplate.content.cloneNode(true));
-  const reSearchButton = results.querySelector('.re-search #reSearchButton');
-  const reSearchInput = results.querySelector('.re-search #reSearchInput');
-
-  if (reSearchInput) {
-    reSearchInput.maxLength = 50;
-    reSearchInput.onkeydown = e => {
-      if (e.key === 'Enter') {
-        search('reSearchInput', true);
-      }
-    };
-  }
-
-  if (reSearchButton) {
-    reSearchButton.onclick = () => {
-      search('reSearchInput', true);
-    };
-  }
-};
+// 초기 진입 시 검색창 렌더링
+export function initSearch() {
+  const results = document.getElementById('results');
+  renderInputAndRecommended(results);
+}

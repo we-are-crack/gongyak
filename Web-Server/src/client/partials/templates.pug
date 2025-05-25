@@ -7,30 +7,39 @@ template#loadingTemplate
       span.loading-dot .
       span.loading-dot .
 
-template#errorTemplate
-  p.text-red-500 검색어를 입력해주세요.
-
-template#noResultsTemplate
-  p.text-red-500 해당 공약과 관련된 정보를 찾을 수 없습니다.
-
-template#reSearchTemplate
-  .re-search.w-full.flex.flex-col.items-center.mt-8
-    p.text-gray-600.mb-2.text-center 다시 검색하시겠습니까?
+template#searchInputTemplate
+  .search-input-wrapper.w-full.flex.flex-col.items-center.mt-8
     .search-box.flex.justify-center.w-full
-      input#reSearchInput.p-3.w-full.max-w-md.rounded-l-lg.border.border-gray-300.focus-outline-none(type="text", maxlength="50", placeholder="다른 공약 검색")
-      button#reSearchButton.p-3.bg-purple-500.text-white.rounded-r-lg.hover-bg-purple-600.flex.items-center.gap-2.font-semibold.transition
+      input.search-input.p-3.w-full.max-w-md.rounded-l-lg.border.border-gray-300.focus-outline-none(
+        type="text",
+        maxlength="50",
+        id="searchInput",
+        placeholder="예: 청년 정책이 궁금해요"
+      )
+      button.search-button.p-3.bg-purple-500.text-white.rounded-r-lg.hover-bg-purple-600.flex.items-center.gap-2.font-semibold.transition(
+        id="searchButton",
+        type="button"
+      )
+        | 검색
         svg.w-5.h-5(fill="none", stroke="currentColor", stroke-width="2.2", viewBox="0 0 24 24")
           circle(cx="11", cy="11", r="7", stroke="currentColor")
           path(d="M21 21l-3.5-3.5", stroke="currentColor", stroke-linecap="round")
-        
-template#invalidSearchTemplate
-  p.text-red-500 대선 공약과 관련된 내용만 검색해 주세요.
 
-template#searchKeywordTemplate
+template#searchQueryTemplate
   .search-keyword.mb-4.flex.items-center.justify-between
     .flex.items-center
       span.search-keyword-label.font-semibold.text-purple-700.mr-2 검색어
       span.search-keyword-value.text-gray-800
-    button#shareButton.ml-2.p-2.bg-purple-50.text-purple-600.rounded-full.flex.items-center.transition-colors.hover-bg-purple-100(type="button", title="공유하기")
+    button.share-button.ml-2.p-2.bg-purple-50.text-purple-600.rounded-full.flex.items-center.transition-colors.hover-bg-purple-100(type="button", title="공유하기")
       svg.w-5.h-5(fill="currentColor", viewBox="0 0 30 30", xmlns="http://www.w3.org/2000/svg")
         path(d="M 23 3 C 20.791 3 19 4.791 19 7 C 19 7.2869826 19.034351 7.5660754 19.091797 7.8359375 L 10 12.380859 C 9.2667379 11.541629 8.2018825 11 7 11 C 4.791 11 3 12.791 3 15 C 3 17.209 4.791 19 7 19 C 8.2018825 19 9.2667379 18.458371 10 17.619141 L 19.091797 22.164062 C 19.034351 22.433925 19 22.713017 19 23 C 19 25.209 20.791 27 23 27 C 25.209 27 27 25.209 27 23 C 27 20.791 25.209 19 23 19 C 21.798117 19 20.733262 19.541629 20 20.380859 L 10.908203 15.835938 C 10.965649 15.566075 11 15.286983 11 15 C 11 14.713017 10.965649 14.433925 10.908203 14.164062 L 20 9.6191406 C 20.733262 10.458371 21.798117 11 23 11 C 25.209 11 27 9.209 27 7 C 27 4.791 25.209 3 23 3 z")
+
+//- 추천 검색어 리스트 템플릿
+template#recommendedSearchQueryListTemplate
+  .recommended-search-query-container.mt-4
+    .recommended-search-queries.flex.flex-wrap.gap-2
+      //- JS에서 버튼 템플릿을 반복적으로 추가
+
+//- 추천 search query 버튼 템플릿 (단일 버튼)
+template#recommendedSearchQueryButtonTemplate
+  button.recommended-search-query.px-3.py-1.bg-gray-100.rounded.hover-bg-purple-100.transition(type="button")
