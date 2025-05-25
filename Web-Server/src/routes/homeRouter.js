@@ -1,5 +1,6 @@
 import express from 'express';
-import { home, search, share } from '../controllers/homeController.js';
+import { home, share } from '../controllers/homeController.js';
+import { search } from '../controllers/searchController.js';
 
 const rootRouter = express.Router();
 
