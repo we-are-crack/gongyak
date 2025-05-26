@@ -29,12 +29,21 @@ const candidateInfo = {
   },
 };
 
+const candidateOrder = ['leejaemyung', 'kimmoonsoo', 'leejunseok'];
+
+function sortCandidates(data) {
+  return data.slice().sort((a, b) => candidateOrder.indexOf(a.candidate) - candidateOrder.indexOf(b.candidate));
+}
+
 // 후보자별 카드 렌더링
 function renderCandidateCards(data) {
   const container = document.createElement('div');
   container.className = 'candidate-container';
 
-  data.forEach(candidate => {
+  // 원하는 순서로 정렬
+  const sortedData = sortCandidates(data);
+
+  sortedData.forEach(candidate => {
     const info = candidateInfo[candidate.candidate];
 
     // 카드 템플릿 clone

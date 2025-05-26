@@ -14,6 +14,12 @@ export default function bindShareButton() {
   if (!shareBtns.length) return;
 
   shareBtns.forEach(shareBtn => {
+    shareBtn.replaceWith(shareBtn.cloneNode(true));
+  });
+
+  const freshBtns = document.querySelectorAll('.share-button');
+
+  freshBtns.forEach(shareBtn => {
     shareBtn.addEventListener('click', () => {
       const keywordElem = shareBtn.closest('.results').querySelector('.search-keyword-value');
       if (!keywordElem) return;
