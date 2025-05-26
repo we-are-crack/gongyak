@@ -24,7 +24,7 @@ export default class RedisRepository {
         data,
       });
 
-      const ttl = 86400; // 1일
+      const ttl = 43200; // 12시간
       await client.expire(key, ttl);
 
       console.log(`Redis에 데이터 저장 완료: ${searchQuery}`);
@@ -63,7 +63,7 @@ export default class RedisRepository {
    * @param {Number} limit - 조회할 결과 개수
    * @returns {Array} - {검색어, html 데이터} 리스트
    */
-  static async findSome(limit = 6) {
+  static async findSome(limit = 10) {
     try {
       let cursor = '0';
       let keys = [];
