@@ -43,3 +43,34 @@ template#recommendedSearchQueryListTemplate
 //- 추천 search query 버튼 템플릿 (단일 버튼)
 template#recommendedSearchQueryButtonTemplate
   button.recommended-search-query.px-3.py-1.bg-gray-100.rounded.hover-bg-purple-100.transition(type="button")
+
+//- 후보자별 단일 카드 템플릿
+template#candidateCardTemplate
+  .candidates-grid
+    .candidate-card
+      .candidate-header
+        a.candidate-link(href="", target="_blank")
+          img.candidate-photo(src="", alt="")
+        h2.candidate-title
+
+//- 후보자별 공약(메인플레지+세부목록) 템플릿
+template#mainPledgeTemplate
+  .main-pledge
+    | 정책 요약 내용
+    a.refimg(href="", target="_blank")
+      | 출처 보기
+      span.refimg-preview
+        img(src="", alt="공약 참고 이미지 미리보기")
+  ul.pledge-details
+
+//- 후보자별 공약 요약 비교 섹션 템플릿
+template#summarySectionTemplate
+  .summary-section
+    h3 후보자별 교육 공약 요약 비교
+    table.summary-table
+      thead
+        tr
+          th 후보자
+          th 핵심 공약 요약
+      tbody
+hr.border-gray-300.mb-4

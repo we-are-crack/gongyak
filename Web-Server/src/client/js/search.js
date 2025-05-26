@@ -12,7 +12,7 @@ async function fetchSearchResults(input) {
     } catch {
       errorData = { message: response.statusText };
     }
-    const error = new Error(errorData.message || response.statusText);
+    const error = new Error(response.statusText);
     error.status = response.status;
     Object.assign(error, errorData);
     throw error;
@@ -101,11 +101,11 @@ export async function handleSearch() {
     const results = document.getElementById('results');
     showLoading(results);
 
-    const data = await fetchSearchResults(value);
+    const { searchQuery, data } = await fetchSearchResults(value);
 
     if (document.getElementById('loading')) document.getElementById('loading').remove();
 
-    renderResults(results, data.search, data.htmlData, true);
+    renderResults(results, searchQuery, data, true);
     renderInputAndRecommended(results);
   } catch (err) {
     const results = document.getElementById('results');
@@ -116,8 +116,8 @@ export async function handleSearch() {
     } else if (err.status === 'tooMayRequests') {
       handleError('검색 결과를 불러오지 못했습니다. 잠시 후 다시 시도하거나, 다른 검색어로 시도해보세요.', results);
     } else {
-      console.error('서버 오류 발생:', err);
-      handleError(err.message || '잠시 후 다시 시도해주세요.', results);
+      console.error('서버 오류 발생');
+      handleError('잠시 후 다시 시도해주세요.', results);
     }
   } finally {
     isSearching = false;
