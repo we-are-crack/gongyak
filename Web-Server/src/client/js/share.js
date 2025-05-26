@@ -1,8 +1,8 @@
 // 모바일 감지
 const isMobileDevice = () => {
   // User-Agent Client Hints API를 사용하여 모바일 기기 감지
-  if (navigator.userAgentData.mobile) {
-    return true;
+  if (navigator.userAgentData && typeof navigator.userAgentData.mobile === 'boolean') {
+    return navigator.userAgentData.mobile;
   }
 
   // User-Agent를 사용하여 모바일 기기 감지
