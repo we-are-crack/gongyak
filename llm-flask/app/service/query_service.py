@@ -5,191 +5,42 @@ from google.genai import types
 from app.extensions.beans import faiss, gemini
 
 answer_format = """
-<div class="candidate-container">
-  <div class="candidates-grid">
-    <div class="candidate-card theminjoo">
-      <div class="candidate-header">
-        <a
-          href="https://storage.googleapis.com/gongyak21_public/resources/candidate_image/leejaemyung.png"
-        >
-          <img
-            class="candidate-photo"
-            src="https://storage.googleapis.com/gongyak21_public/resources/candidate_image/leejaemyung.png"
-            alt="이재명 후보"
-          />
-        </a>
-        <h2>더불어민주당 이재명</h2>
-      </div>
-      <div class="main-pledge">
-        한 문서의 정책 요약 내용
-        <a class="refimg" href="`이미지`" target="_blank">
-          출처 보기
-          <span class="refimg-preview">
-            <img src="`이미지`" alt="공약 참고 이미지 미리보기" />
-          </span>
-        </a>
-      </div>
-      <ul>
-        <li>세부 공약 내용1</li>
-        <li>세부 공약 내용2</li>
-        <li>세부 공약 내용3</li>
-        <li>세부 공약 내용4</li>
-      </ul>
-      <div class="main-pledge">
-        한 문서의 정책 요약 내용
-        <a class="refimg" href="`이미지`" target="_blank">
-          출처 보기
-          <span class="refimg-preview">
-            <img src="`이미지`" alt="공약 참고 이미지 미리보기" />
-          </span>
-        </a>
-      </div>
-      <ul>
-        <li>세부 공약 내용1</li>
-        <li>세부 공약 내용2</li>
-        <li>세부 공약 내용3</li>
-        <li>세부 공약 내용4</li>
-      </ul>
-    </div>
-  </div>
-  <div class="candidates-grid">
-    <div class="candidate-card peoplepowerparty">
-      <div class="candidate-header">
-        <a
-          href="https://storage.googleapis.com/gongyak21_public/resources/candidate_image/kimmoonsoo.png"
-        >
-          <img
-            class="candidate-photo"
-            src="https://storage.googleapis.com/gongyak21_public/resources/candidate_image/kimmoonsoo.png"
-            alt="김문수 후보"
-          />
-        </a>
-        <h2>국민의힘 김문수</h2>
-      </div>
-      <div class="main-pledge">
-        한 문서의 정책 요약 내용
-        <a class="refimg" href="`이미지`" target="_blank">
-          출처 보기
-          <span class="refimg-preview">
-            <img src="`이미지`" alt="공약 참고 이미지 미리보기" />
-          </span>
-        </a>
-      </div>
-      <ul>
-        <li>세부 공약 내용1</li>
-        <li>세부 공약 내용2</li>
-        <li>세부 공약 내용3</li>
-        <li>세부 공약 내용4</li>
-      </ul>
-      <div class="main-pledge">
-        한 문서의 정책 요약 내용
-        <a class="refimg" href="`이미지`" target="_blank">
-          출처 보기
-          <span class="refimg-preview">
-            <img src="`이미지`" alt="공약 참고 이미지 미리보기" />
-          </span>
-        </a>
-      </div>
-      <ul>
-        <li>세부 공약 내용1</li>
-        <li>세부 공약 내용2</li>
-        <li>세부 공약 내용3</li>
-        <li>세부 공약 내용4</li>
-      </ul>
-    </div>
-  </div>
-  <div class="candidates-grid">
-    <div class="candidate-card reformparty">
-      <div class="candidate-header">
-        <a
-          href="https://storage.googleapis.com/gongyak21_public/resources/candidate_image/leejunseok.png"
-        >
-          <img
-            class="candidate-photo"
-            src="https://storage.googleapis.com/gongyak21_public/resources/candidate_image/leejunseok.png"
-            alt="이준석 후보"
-          />
-        </a>
-        <h2>개혁신당 이준석</h2>
-      </div>
-      <div class="main-pledge">
-        한 문서의 정책 요약 내용
-        <a class="refimg" href="`이미지`" target="_blank">
-          출처 보기
-          <span class="refimg-preview">
-            <img src="`이미지`" alt="공약 참고 이미지 미리보기" />
-          </span>
-        </a>
-      </div>
-      <ul>
-        <li>세부 공약 내용1</li>
-        <li>세부 공약 내용2</li>
-        <li>세부 공약 내용3</li>
-        <li>세부 공약 내용4</li>
-      </ul>
-      <div class="main-pledge">
-        한 문서의 정책 요약 내용
-        <a class="refimg" href="`이미지`" target="_blank">
-          출처 보기
-          <span class="refimg-preview">
-            <img src="`이미지`" alt="공약 참고 이미지 미리보기" />
-          </span>
-        </a>
-      </div>
-      <ul>
-        <li>세부 공약 내용1</li>
-        <li>세부 공약 내용2</li>
-        <li>세부 공약 내용3</li>
-        <li>세부 공약 내용4</li>
-      </ul>
-    </div>
-  </div>
-</div>
-<!-- 후보자별 공약 요약 비교 섹션 추가 -->
-<div class="summary-section">
-  <h3>후보자별 교육 공약 요약 비교</h3>
-  <table class="summary-table">
-    <thead>
-      <tr>
-        <th>후보자</th>
-        <th>핵심 공약 요약</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="summary-cand summary-cand-theminjoo">이재명</span></td>
-        <td>
-          <ul>
-            <!-- 이재명 후보의 주요 공약 리스트 -->
-            <li>공약 요약 1</li>
-            <li>공약 요약 2</li>
-          </ul>
-        </td>
-      </tr>
-      <tr>
-        <td><span class="summary-cand summary-cand-peoplepowerparty">김문수</span></td>
-        <td>
-          <ul>
-            <!-- 김문수 후보의 주요 공약 리스트 -->
-            <li>공약 요약 1</li>
-            <li>공약 요약 2</li>
-          </ul>
-        </td>
-      </tr>
-      <tr>
-        <td><span class="summary-cand summary-cand-reformparty">이준석</span></td>
-        <td>
-          <ul>
-            <!-- 이준석 후보의 주요 공약 리스트 -->
-            <li>공약 요약 1</li>
-            <li>공약 요약 2</li>
-          </ul>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-<hr class="border-gray-300 mb-4" />
+[
+  {
+    "candidate": "leejaemyung",
+    "pledges": [
+      {
+        "mainPledge": "주요 정책1",
+        "sourceImage": "이미지 출처 경로",
+        "details": [
+          "세부 정책 내용1",
+          "세부 정책 내용2",
+          "세부 정책 내용3",
+          ...
+        ]
+      },
+      {
+        "mainPledge": "주요 정책2",
+        "sourceImage": "이미지 출처 경로",
+        "details": [
+          "세부 정책 내용1",
+          "세부 정책 내용2",
+          "세부 정책 내용3",
+          ...
+        ]
+      },
+      ...
+    ]
+  },
+  {
+    "candidate": "kimmoonsoo",
+    ...
+  },
+  {
+    "candidate": "leejunseok",
+    ...
+  }
+]
 """
 
 def query(q: str) -> str:
@@ -208,14 +59,9 @@ def query(q: str) -> str:
   # print(context)
 
   prompt = f"""
-  당신은 대한민국 제21대 대통령 선거 후보자의 정책 공약에 대해서만 대답하는 AI입니다. 당신은 지금부터 아래 주어지는 대한민국 21대 대통령 선거 후보자의 정책 공약 데이터 중에 질문과 관계있는 문서에 대해서만 간략하고 쉽게 요약해주어야 합니다.
+  당신은 대한민국 제21대 대통령 선거 후보자의 정책 공약에 대해 간략하고 쉽게 요약해주는 AI입니다. 아래에 제가 제공하는 문서 데이터에서 질문과 관련있는 것만 참고해 후보별로 그리고 문서별로 질문과 관계있는 문서를 주요 공약과 세부 공약으로 요약해주어야 합니다.
   또한, 요약한 모든 문장은 명사형 종결 스타일로 작성해야 합니다. 예를들어 "대책을 마련하겠습니다." 가 아닌 "대책 마련" 식으로 간결하게 요약하세요.
-  각 데이터의 [] 내에는 해당 문서의 메타데이터가 포함되어 있습니다. 이를 활용해 아래 주어진 답변 형식에 따라 질문에 대한 답을 해주세요. 그리고 중복되는 내용은 제외해주세요.
-  답변 형식에 포함된 백틱(`)으로 감싸진 `이미지`는 metadata를 참고해 아래 지정하는 값을 넣어주세요.
-  - `이미지`: metadata.이미지
-
-  요약은 후보자별로 그리고 페이지별로 최대한 간단하게 요약해주세요. div.main-pledge와 세부 공약내용인 li 태그는 당신이 요약한 페이지 수만큼 추가되어야 합니다. 예를들어, 당신이 3개의 문서를 참조해 요약했다면 div.main-pledge는 3개가 되어야하고 세부 공약 내용이 3개라면 li 태그 또한 3개가 되어야합니다. 단, li 태그는 최대 4개까지만 추가하세요.
-  마지막으로 후보자별 공약을 요약하는 summary-talbe 내의 li는 당신이 위에서 요약한 후보자별 div.main-pledge의 페이지별 요약을 더욱 간단하게 요약해서 추가하면 됩니다.
+  각 데이터의 [] 내에는 해당 문서의 메타데이터가 포함되어 있습니다. 이를 활용해 아래 주어진 JSON 포맷의 답변 형식에 따라 질문에 대한 답을 해주세요. 그리고 중복되는 내용은 제외해주세요. 세부 공약 내용은 최대 4개까지만 적어주세요.
 
   질문: {q}
 
