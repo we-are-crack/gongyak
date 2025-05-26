@@ -10,7 +10,7 @@ const checkSimilarSearchQuery = async enbedding => {
     const { searchQuery, score } = (await RedisRepository.searchByVector(enbedding)) || {};
 
     // Redis에 비슷한 검색어가 있고, 벡터 검색 시 코사인 유사도 점수가 0.8 이상이면 비슷한 검색어 존재
-    if (searchQuery != null && score > 0.0) {
+    if (searchQuery != null && score > 0.83) {
       return searchQuery;
     }
 
