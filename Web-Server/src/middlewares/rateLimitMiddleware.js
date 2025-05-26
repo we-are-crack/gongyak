@@ -5,8 +5,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 60 * 1000;
-const RATE_LIMIT_MAX = parseInt(process.env.RATE_LIMIT_MAX) || 10;
-
+const RATE_LIMIT_MAX = parseInt(process.env.RATE_LIMIT_MAX) || 30;
+// Web
 export const rateLimitMiddleware = rateLimit({
   windowMs: RATE_LIMIT_WINDOW_MS,
   max: RATE_LIMIT_MAX,

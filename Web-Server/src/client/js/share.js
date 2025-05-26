@@ -36,6 +36,7 @@ export default function bindShareButton() {
           content: {
             title: `공약21 공약 검색: ${keyword}`,
             description: '공약21에서 검색한 결과를 공유합니다.',
+            imageUrl: 'https://gongyak21.site/static/logo.png',
             link: {
               mobileWebUrl: shareUrl,
               webUrl: shareUrl,
