@@ -123,3 +123,8 @@ class Faiss:
 
         new_vs = FAISS.from_documents(documents, self.embedding)
         new_vs.save_local(self.init_index_dir, index_name = index_name)
+
+    def reload_index(self):
+        self.private_gcs_storage.download_directory(self.index_dir, self.index_dir)
+        self._load_vectorstores()
+        logger.info("index reload complete.")
