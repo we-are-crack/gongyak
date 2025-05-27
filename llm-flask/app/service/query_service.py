@@ -47,28 +47,28 @@ def get_documents(q: str, k: int) -> dict:
   data = {
     "leejaemyung": {
       "metadata": {
-				"political_party": "더불어민주당",
-				"political_party_eng": name_k2e_convertor.get_political_party_eng_name("더불어민주당"),
+				"politicalParty": "더불어민주당",
+				"politicalPartyEng": name_k2e_convertor.get_political_party_eng_name("더불어민주당"),
 				"candidate": "이재명",
-	      "candidate_eng": name_k2e_convertor.get_candidate_eng_name("이재명")
+	      "candidateEng": name_k2e_convertor.get_candidate_eng_name("이재명")
 			},
       "contents": []
     },
     "kimmoonsoo": {
       "metadata": {
-				"political_party": "국민의힘",
-				"political_party_eng": name_k2e_convertor.get_political_party_eng_name("국민의힘"),
+				"politicalParty": "국민의힘",
+				"politicalPartyEng": name_k2e_convertor.get_political_party_eng_name("국민의힘"),
 				"candidate": "김문수",
-	      "candidate_eng": name_k2e_convertor.get_candidate_eng_name("김문수")
+	      "candidateEng": name_k2e_convertor.get_candidate_eng_name("김문수")
 			},
       "contents": []
     },
     "leejunseok": {
       "metadata": {
-				"political_party": "개혁신당",
-				"political_party_eng": name_k2e_convertor.get_political_party_eng_name("개혁신당"),
+				"politicalParty": "개혁신당",
+				"politicalPartyEng": name_k2e_convertor.get_political_party_eng_name("개혁신당"),
 				"candidate": "이준석",
-	      "candidate_eng": name_k2e_convertor.get_candidate_eng_name("이준석")
+	      "candidateEng": name_k2e_convertor.get_candidate_eng_name("이준석")
 			},
       "contents": []
     }
@@ -79,7 +79,7 @@ def get_documents(q: str, k: int) -> dict:
     candidate = doc.metadata.get('candidate_eng', 'N/A')
     content = {
       "content": doc.page_content,
-      "source_image": doc.metadata.get('source_image', 'N/A')
+      "sourceImage": doc.metadata.get('source_image', 'N/A')
     }
 
     if candidate in data:
