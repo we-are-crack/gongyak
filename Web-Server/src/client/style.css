@@ -881,3 +881,64 @@ nav ul li a:active {
     height: 2px;
   }
 }
+
+/* --- 추천 search query 리스트 부제목(실시간 안내) --- */
+.recommended-search-query-realtime {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: #8b5cf6;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  letter-spacing: 0.02em;
+  text-align: center;
+  width: 100%;
+  position: relative;
+}
+
+.recommended-search-query-realtime::before {
+  content: '🔥';
+  font-size: 1.1rem;
+  animation: pulse 2s infinite;
+}
+
+.recommended-search-query-realtime::after {
+  content: '';
+  position: absolute;
+  bottom: -0.3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #a78bfa, transparent);
+  border-radius: 1px;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+/* --- 모바일 반응형 --- */
+@media (max-width: 640px) {
+  .recommended-search-query-realtime {
+    font-size: 0.88rem;
+    gap: 0.4rem;
+    margin-bottom: 0.8rem;
+  }
+  .recommended-search-query-realtime::before {
+    font-size: 1rem;
+  }
+  .recommended-search-query-realtime::after {
+    width: 70%;
+  }
+}
