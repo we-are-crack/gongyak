@@ -1,8 +1,11 @@
 import os
+import logging
 from google import genai
 from google.genai import types
 
 from app.extensions.beans import faiss, gemini, name_k2e_convertor
+
+logger = logging.getLogger(__name__)
 
 answer_format = """
 [
@@ -44,6 +47,10 @@ answer_format = """
 """
 
 def get_documents(q: str, k: int) -> dict:
+  # BGE 기반 모델 사용시 prefix로 'query: ' 적용
+  q = f"query: {q}"
+  logger.info("검색어 : %s", q)
+  
   data = {
     "leejaemyung": {
       "metadata": {
