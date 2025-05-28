@@ -4,6 +4,7 @@ from google import genai
 from google.genai import types
 
 from app.extensions.beans import faiss, gemini, name_k2e_convertor
+from app.util_classes.candidate_info import candidate_info
 
 logger = logging.getLogger(__name__)
 
@@ -46,53 +47,32 @@ answer_format = """
 ]
 """
 
+def _build_data(docs_by_candidate: list) -> dict:
+  data = {}
+  for candidate, docs in docs_by_candidate.items():
+    contents = []
+
+    for doc in docs:
+      content = {
+        "content": doc.page_content.replace("passage: ", ""),
+        "sourceImage": doc.metadata.get("source_image", "N/A")
+      }
+
+      contents.append(content)
+
+    data[candidate] = {
+      "metadata": candidate_info.get(candidate),
+      "contents": contents
+    }
+
+  return data
+
 def get_documents(q: str, k: int) -> dict:
   # BGE 기반 모델 사용시 prefix로 'query: ' 적용
   q = f"query: {q}"
-  logger.info("검색어 : %s", q)
+  docs_by_candidate = faiss.query_by_candidate(q, k)
   
-  data = {
-    "leejaemyung": {
-      "metadata": {
-				"politicalParty": "더불어민주당",
-				"politicalPartyEng": name_k2e_convertor.get_political_party_eng_name("더불어민주당"),
-				"candidate": "이재명",
-	      "candidateEng": name_k2e_convertor.get_candidate_eng_name("이재명")
-			},
-      "contents": []
-    },
-    "kimmoonsoo": {
-      "metadata": {
-				"politicalParty": "국민의힘",
-				"politicalPartyEng": name_k2e_convertor.get_political_party_eng_name("국민의힘"),
-				"candidate": "김문수",
-	      "candidateEng": name_k2e_convertor.get_candidate_eng_name("김문수")
-			},
-      "contents": []
-    },
-    "leejunseok": {
-      "metadata": {
-				"politicalParty": "개혁신당",
-				"politicalPartyEng": name_k2e_convertor.get_political_party_eng_name("개혁신당"),
-				"candidate": "이준석",
-	      "candidateEng": name_k2e_convertor.get_candidate_eng_name("이준석")
-			},
-      "contents": []
-    }
-  }
-
-  docs = faiss.query(q, k)
-  for doc in docs:
-    candidate = doc.metadata.get('candidate_eng', 'N/A')
-    content = {
-      "content": doc.page_content,
-      "sourceImage": doc.metadata.get('source_image', 'N/A')
-    }
-
-    if candidate in data:
-      data[candidate]["contents"].append(content)
-  
-  return data
+  return _build_data(docs_by_candidate)
 
 def query(q: str) -> str:
   docs = faiss.query(q)

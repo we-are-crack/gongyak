@@ -21,6 +21,7 @@ class Faiss:
         self.top = top
         self.vectorstores = []
         self.retrievers = []
+        self.vs_by_candidate = {}
 
         # 클라우드 스토리지에서 인덱스 파일 다운로드 (항상 최신화)
         self.private_gcs_storage.download_directory(self.index_dir, self.index_dir)
@@ -28,11 +29,13 @@ class Faiss:
     def _load_vectorstores(self):
         try:
             vectorstores = []
+            vs_by_candidate = {}
             for index_file in self.local_storage.list_files(self.index_dir):
                 if not index_file.lower().endswith(".faiss"):
                     continue
                 
                 index_name = index_file.split(".")[0]
+                candidate = index_name.split("_")[1]
 
                 vs = FAISS.load_local(
                     folder_path = self.index_dir,
@@ -42,12 +45,24 @@ class Faiss:
                 )
 
                 vectorstores.append(vs)
+                vs_by_candidate[candidate] = vs
 
             self.vectorstores = vectorstores
+            self.vs_by_candidate = vs_by_candidate
             print(f"{len(self.vectorstores)}개의 인덱스 로드.")
 
         except FileNotFoundError:
             print("저장된 인덱스가 없음.")
+
+    def query_by_candidate(self, q: str, k: int = 5) -> dict:
+        if not self.vs_by_candidate:
+            self._load_vectorstores()
+        
+        docs = {}
+        for candidate, vs in self.vs_by_candidate.items():
+            docs[candidate] = vs.similarity_search(q, k)
+        
+        return docs
 
     def query(self, q: str, k: int = 5) -> list[Document]:
         if not self.vectorstores:
