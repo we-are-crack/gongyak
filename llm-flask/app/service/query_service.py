@@ -101,12 +101,12 @@ def get_documents_with_llm(q: str, k: int) -> dict:
   _llm_rerank(q, docs_by_candidate, k)
   return _build_data(docs_by_candidate)
 
-def get_documents_with_bge(q: str, k: int) -> dict:
-  # BGE 기반 모델 사용시 prefix로 'query: ' 적용
-  q = f"query: {q}"
-  docs_by_candidate = faiss.query_by_candidate(q, k * 2)
-  _bge_rerank_all(q, docs_by_candidate, k)
-  return _build_data(docs_by_candidate)
+# def get_documents_with_bge(q: str, k: int) -> dict:
+#   # BGE 기반 모델 사용시 prefix로 'query: ' 적용
+#   q = f"query: {q}"
+#   docs_by_candidate = faiss.query_by_candidate(q, k * 2)
+#   _bge_rerank_all(q, docs_by_candidate, k)
+#   return _build_data(docs_by_candidate)
 
 # def _bge_rerank_all(query, docs_by_candidate, n):
 #   logger.info("bge 리랭크 실행")
