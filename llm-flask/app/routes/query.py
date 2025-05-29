@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 import json
 import logging
 
-from app.service.query_service import get_documents, get_documents_with_bge, get_documents_with_llm, query, is_relevant_question
+from app.service.query_service import get_documents, get_documents_with_llm, query, is_relevant_question
 
 query_bp = Blueprint("query", __name__)
 logger = logging.getLogger(__name__)
