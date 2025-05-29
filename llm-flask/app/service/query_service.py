@@ -13,23 +13,23 @@ from app.util_classes.candidate_info import candidate_info
 logger = logging.getLogger(__name__)
 
 # 양자화 엔진 설정
-arch = platform.machine().lower()
-if arch in ['x86_64', 'i386', 'i686']:
-  torch.backends.quantized.engine = 'fbgemm'
-elif arch in ['arm64', 'aarch64']:
-  torch.backends.quantized.engine = 'qnnpack'
-else:
-  print(f"Unsupported architecture: {arch}, defaulting to qnnpack")
-  torch.backends.quantized.engine = 'qnnpack'
+# arch = platform.machine().lower()
+# if arch in ['x86_64', 'i386', 'i686']:
+#   torch.backends.quantized.engine = 'fbgemm'
+# elif arch in ['arm64', 'aarch64']:
+#   torch.backends.quantized.engine = 'qnnpack'
+# else:
+#   print(f"Unsupported architecture: {arch}, defaulting to qnnpack")
+#   torch.backends.quantized.engine = 'qnnpack'
 
-# Reranker 모델 로드
-reranker_tokenizer = AutoTokenizer.from_pretrained("Dongjin-kr/ko-reranker")
-reranker_model = AutoModelForSequenceClassification.from_pretrained("Dongjin-kr/ko-reranker")
-reranker_model = torch.quantization.quantize_dynamic(
-    reranker_model, {torch.nn.Linear}, dtype=torch.qint8
-)
-print(f"Quantization applied with {torch.backends.quantized.engine} engine")
-reranker_model.eval()
+# # Reranker 모델 로드
+# reranker_tokenizer = AutoTokenizer.from_pretrained("Dongjin-kr/ko-reranker")
+# reranker_model = AutoModelForSequenceClassification.from_pretrained("Dongjin-kr/ko-reranker")
+# reranker_model = torch.quantization.quantize_dynamic(
+#     reranker_model, {torch.nn.Linear}, dtype=torch.qint8
+# )
+# print(f"Quantization applied with {torch.backends.quantized.engine} engine")
+# reranker_model.eval()
 
 answer_format = """
 [
@@ -108,33 +108,33 @@ def get_documents_with_bge(q: str, k: int) -> dict:
   _bge_rerank_all(q, docs_by_candidate, k)
   return _build_data(docs_by_candidate)
 
-def _bge_rerank_all(query, docs_by_candidate, n):
-  logger.info("bge 리랭크 실행")
-  for candidate, docs in docs_by_candidate.items():
-    sorted_docs, _ = zip(*_bge_rerank(query, docs, n))
-    docs_by_candidate[candidate] = sorted_docs
+# def _bge_rerank_all(query, docs_by_candidate, n):
+#   logger.info("bge 리랭크 실행")
+#   for candidate, docs in docs_by_candidate.items():
+#     sorted_docs, _ = zip(*_bge_rerank(query, docs, n))
+#     docs_by_candidate[candidate] = sorted_docs
 
-def _bge_rerank(query, docs, n, batch_size = 2):
-  # Reranker 점수 계산 (배치 처리)
-  scores = []
-  for i in range(0, len(docs), batch_size):
-      batch_docs = docs[i:i+batch_size]
-      inputs = reranker_tokenizer(
-          [(query, doc.page_content) for doc in batch_docs],
-          return_tensors = "pt",
-          padding = True,
-          truncation = True,
-          max_length = 512
-      )
+# def _bge_rerank(query, docs, n, batch_size = 2):
+#   # Reranker 점수 계산 (배치 처리)
+#   scores = []
+#   for i in range(0, len(docs), batch_size):
+#       batch_docs = docs[i:i+batch_size]
+#       inputs = reranker_tokenizer(
+#           [(query, doc.page_content) for doc in batch_docs],
+#           return_tensors = "pt",
+#           padding = True,
+#           truncation = True,
+#           max_length = 512
+#       )
 
-      with torch.no_grad():
-          logits = reranker_model(**inputs).logits
-          batch_scores = torch.sigmoid(logits).squeeze().tolist()
-      scores.extend(batch_scores if isinstance(batch_scores, list) else [batch_scores])
+#       with torch.no_grad():
+#           logits = reranker_model(**inputs).logits
+#           batch_scores = torch.sigmoid(logits).squeeze().tolist()
+#       scores.extend(batch_scores if isinstance(batch_scores, list) else [batch_scores])
 
-  # 상위 n개 문서 선택
-  sorted_docs = sorted(zip(docs, scores), key = lambda x: x[1], reverse = True)[:n]
-  return sorted_docs
+#   # 상위 n개 문서 선택
+#   sorted_docs = sorted(zip(docs, scores), key = lambda x: x[1], reverse = True)[:n]
+#   return sorted_docs
 
 def _llm_rerank(query, docs_by_candidate, n):
   logger.info("llm 리랭크 실행")

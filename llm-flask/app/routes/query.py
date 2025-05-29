@@ -33,9 +33,9 @@ def get_docs():
         return jsonify({"status": "error", "message": "Query is required."}), 400
 
     logger.info("질문: %s", q)
-    if t == "bge":
-        data = get_documents_with_bge(q, k)
-    elif t == "llm":
+    # if t == "bge":
+    #     data = get_documents_with_bge(q, k)
+    if t == "llm":
         data = get_documents_with_llm(q, k)
     else:
         data = get_documents(q, k)
