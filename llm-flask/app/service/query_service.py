@@ -2,11 +2,34 @@ import os
 import logging
 from google import genai
 from google.genai import types
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
+import json
+import platform
 
 from app.extensions.beans import faiss, gemini, name_k2e_convertor
 from app.util_classes.candidate_info import candidate_info
 
 logger = logging.getLogger(__name__)
+
+# 양자화 엔진 설정
+arch = platform.machine().lower()
+if arch in ['x86_64', 'i386', 'i686']:
+  torch.backends.quantized.engine = 'fbgemm'
+elif arch in ['arm64', 'aarch64']:
+  torch.backends.quantized.engine = 'qnnpack'
+else:
+  print(f"Unsupported architecture: {arch}, defaulting to qnnpack")
+  torch.backends.quantized.engine = 'qnnpack'
+
+# Reranker 모델 로드
+reranker_tokenizer = AutoTokenizer.from_pretrained("Dongjin-kr/ko-reranker")
+reranker_model = AutoModelForSequenceClassification.from_pretrained("Dongjin-kr/ko-reranker")
+reranker_model = torch.quantization.quantize_dynamic(
+    reranker_model, {torch.nn.Linear}, dtype=torch.qint8
+)
+print(f"Quantization applied with {torch.backends.quantized.engine} engine")
+reranker_model.eval()
 
 answer_format = """
 [
@@ -51,8 +74,7 @@ def _build_data(docs_by_candidate: list) -> dict:
   data = {}
   for candidate, docs in docs_by_candidate.items():
     contents = []
-
-    for doc in docs:
+    for doc in docs:      
       content = {
         "content": doc.page_content.replace("passage: ", ""),
         "sourceImage": doc.metadata.get("source_image", "N/A")
@@ -67,12 +89,103 @@ def _build_data(docs_by_candidate: list) -> dict:
 
   return data
 
-def get_documents(q: str, k: int) -> dict:
-  # BGE 기반 모델 사용시 prefix로 'query: ' 적용
+def get_documents(q: str, k: int):
   q = f"query: {q}"
   docs_by_candidate = faiss.query_by_candidate(q, k)
-  
   return _build_data(docs_by_candidate)
+
+def get_documents_with_llm(q: str, k: int) -> dict:
+  # BGE 기반 모델 사용시 prefix로 'query: ' 적용
+  q = f"query: {q}"
+  docs_by_candidate = faiss.query_by_candidate(q, k * 2)
+  _llm_rerank(q, docs_by_candidate, k)
+  return _build_data(docs_by_candidate)
+
+def get_documents_with_bge(q: str, k: int) -> dict:
+  # BGE 기반 모델 사용시 prefix로 'query: ' 적용
+  q = f"query: {q}"
+  docs_by_candidate = faiss.query_by_candidate(q, k * 2)
+  _bge_rerank_all(q, docs_by_candidate, k)
+  return _build_data(docs_by_candidate)
+
+def _bge_rerank_all(query, docs_by_candidate, n):
+  logger.info("bge 리랭크 실행")
+  for candidate, docs in docs_by_candidate.items():
+    sorted_docs, _ = zip(*_bge_rerank(query, docs, n))
+    docs_by_candidate[candidate] = sorted_docs
+
+def _bge_rerank(query, docs, n, batch_size = 2):
+  # Reranker 점수 계산 (배치 처리)
+  scores = []
+  for i in range(0, len(docs), batch_size):
+      batch_docs = docs[i:i+batch_size]
+      inputs = reranker_tokenizer(
+          [(query, doc.page_content) for doc in batch_docs],
+          return_tensors = "pt",
+          padding = True,
+          truncation = True,
+          max_length = 512
+      )
+
+      with torch.no_grad():
+          logits = reranker_model(**inputs).logits
+          batch_scores = torch.sigmoid(logits).squeeze().tolist()
+      scores.extend(batch_scores if isinstance(batch_scores, list) else [batch_scores])
+
+  # 상위 n개 문서 선택
+  sorted_docs = sorted(zip(docs, scores), key = lambda x: x[1], reverse = True)[:n]
+  return sorted_docs
+
+def _llm_rerank(query, docs_by_candidate, n):
+  logger.info("llm 리랭크 실행")
+  total_data = ""
+  for candidate, docs in docs_by_candidate.items():
+    data = "\n\n".join(
+        f"{doc.page_content}\n"
+        f"metadata[데이터ID: {doc.id}, "
+        f"정당: {doc.metadata.get('political_party', 'N/A')}, "
+        f"정당영문명: {doc.metadata.get('political_party_eng', 'N/A')}, "
+        f"후보자: {doc.metadata.get('candidate', 'N/A')}, "
+        f"후보자영문: {doc.metadata.get('candidate_eng', 'N/A')}, "
+        f"이미지: {doc.metadata.get('source_image', 'N/A')}] "
+        for doc in docs
+    )
+
+    total_data = total_data + data + "\n\n"
+
+  response_format = """
+    ```json
+      {
+        "leejaemyung": [관련있는 데이터의 id, 관련있는 데이터의 id, 관련있는 데이터의 id, ...],
+        "kimmoonsoo": [관련있는 데이터의 id, 관련있는 데이터의 id, 관련있는 데이터의 id, ...],
+        "leejunseok": [관련있는 데이터의 id, 관련있는 데이터의 id, 관련있는 데이터의 id, ...],
+      }
+    ```
+  """
+
+  prompt = f"""
+    당신은 제가 제공하는 데이터 중에 질문과 관계있는 데이터만 골라내는 AI입니다. 답변 형식은 다음과 같습니다.
+    {response_format}
+    관련있는 데이터의 id는 해당 데이터와 질문과의 유사도의 내림차순으로 정렬해주세요.
+
+    질문: {query}
+
+    데이터:
+    {total_data}
+  """
+
+  result = gemini.generate(prompt).strip().removeprefix("```json").removesuffix("```").strip()
+  selected = json.loads(result)
+
+  for candidate, docs in docs_by_candidate.items():
+    temp = []
+    sel = selected[candidate][:n]
+
+    for doc in docs:
+      if doc.id in sel:
+        temp.append(doc)
+
+    docs_by_candidate[candidate] = temp
 
 def query(q: str) -> str:
   docs = faiss.query(q)

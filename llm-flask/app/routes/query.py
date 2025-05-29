@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 import json
 import logging
 
-from app.service.query_service import get_documents, query, is_relevant_question
+from app.service.query_service import get_documents, get_documents_with_bge, get_documents_with_llm, query, is_relevant_question
 
 query_bp = Blueprint("query", __name__)
 logger = logging.getLogger(__name__)
@@ -27,10 +27,17 @@ def query_to_llm():
 def get_docs():
     q = request.args.get("q")
     k = int(request.args.get("k", "5"))
+    t = request.args.get("type", "normal")
 
     if not q:
         return jsonify({"status": "error", "message": "Query is required."}), 400
 
     logger.info("질문: %s", q)
+    if t == "bge":
+        data = get_documents_with_bge(q, k)
+    elif t == "llm":
+        data = get_documents_with_llm(q, k)
+    else:
+        data = get_documents(q, k)
 
-    return jsonify({"status": "ok", "data": get_documents(q, k)}), 200
+    return jsonify({"status": "ok", "data": data}), 200
