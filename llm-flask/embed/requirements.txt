@@ -4,4 +4,4 @@ sentence-transformers
 numpy
 google-cloud-storage
 pymupdf
--e ../config
+-e ../common

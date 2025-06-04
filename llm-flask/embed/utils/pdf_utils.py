@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import List
 
 import fitz
-from common_config.logger_config import setup_logging  # type: ignore
+from common.config.logger import setup_logging  # type: ignore
 
 logger = setup_logging(__name__)
 

@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List
 
 import fitz
-from common_config.logger_config import setup_logging  # type: ignore
+from common.config.logger import setup_logging  # type: ignore
 from google.cloud import vision  # type: ignore
 
 from storage.local_storage import local_storage

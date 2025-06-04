@@ -1,9 +1,8 @@
 from typing import List
 
 import numpy as np
+from common.dtype import Document  # type: ignore
 from sentence_transformers import SentenceTransformer
-
-from embedder.document_cls import Document
 
 
 class TextEmbedder:

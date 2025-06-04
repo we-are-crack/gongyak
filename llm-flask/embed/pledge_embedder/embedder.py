@@ -2,9 +2,9 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List
 
-from common_config.logger_config import setup_logging  # type: ignore
+from common.config.logger import setup_logging  # type: ignore
+from common.dtype import Document  # type: ignore
 
-from embedder.document_cls import Document
 from embedder.text_embedder import TextEmbedder
 from storage.gcs_storage import GCSStorage, private_gcs, public_gcs
 from storage.local_storage import LocalStorage, local_storage
@@ -67,6 +67,11 @@ class Embedder(ABC):
 
     def embed(self, merge: bool, prefix: str = ""):
         saved_image_paths = self._preprocess()
+
+        # 테스트용
+        # saved_image_paths = []
+        # for ip in self.img_dir.iterdir():
+        #     saved_image_paths.append(ip)
 
         self.logger.info("텍스트 임베딩 시작")
         documents = []

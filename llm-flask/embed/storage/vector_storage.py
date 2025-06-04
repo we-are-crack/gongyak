@@ -4,9 +4,8 @@ from pathlib import Path
 from typing import List
 
 import numpy as np
-from common_config.logger_config import setup_logging  # type: ignore
-
-from embedder.document_cls import Document
+from common.config.logger import setup_logging  # type: ignore
+from common.dtype import Document  # type: ignore
 
 
 class VectorStorage(ABC):
