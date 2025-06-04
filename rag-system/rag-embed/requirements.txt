@@ -1,0 +1,7 @@
+google-cloud-vision
+faiss-cpu
+sentence-transformers
+numpy
+google-cloud-storage
+pymupdf
+-e ../common
