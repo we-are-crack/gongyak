@@ -1,0 +1,10 @@
+Flask
+faiss-cpu
+sentence-transformers
+numpy
+google-genai
+google-cloud-storage
+gunicorn
+transformers
+torch
+-e ../common
