@@ -9,9 +9,9 @@ class EmbedService:
         self.text_embedder = text_embedder
 
     def embed_document(self, document: str, dtype: str = "float32") -> list[Any]:
-        return self.text_embedder.embed_document(
-            document=document, dtype=dtype
-        ).tolist()
+        return self.text_embedder.embed_document(document=document, dtype=dtype)[
+            0
+        ].tolist()
 
     def embed_query(self, query: str, dtype: str = "float32") -> list[Any]:
-        return self.text_embedder.embed_query(query=query, dtype=dtype).tolist()
+        return self.text_embedder.embed_query(query=query, dtype=dtype)[0].tolist()
