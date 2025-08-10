@@ -1,8 +1,8 @@
 // 모바일 감지
 const isMobileDevice = () => {
   // User-Agent Client Hints API를 사용하여 모바일 기기 감지
-  if (navigator.userAgentData.mobile) {
-    return true;
+  if (navigator.userAgentData && typeof navigator.userAgentData.mobile === 'boolean') {
+    return navigator.userAgentData.mobile;
   }
 
   // User-Agent를 사용하여 모바일 기기 감지
@@ -14,6 +14,12 @@ export default function bindShareButton() {
   if (!shareBtns.length) return;
 
   shareBtns.forEach(shareBtn => {
+    shareBtn.replaceWith(shareBtn.cloneNode(true));
+  });
+
+  const freshBtns = document.querySelectorAll('.share-button');
+
+  freshBtns.forEach(shareBtn => {
     shareBtn.addEventListener('click', () => {
       const keywordElem = shareBtn.closest('.results').querySelector('.search-keyword-value');
       if (!keywordElem) return;
@@ -30,6 +36,7 @@ export default function bindShareButton() {
           content: {
             title: `공약21 공약 검색: ${keyword}`,
             description: '공약21에서 검색한 결과를 공유합니다.',
+            imageUrl: 'https://gongyak21.site/static/logo.png',
             link: {
               mobileWebUrl: shareUrl,
               webUrl: shareUrl,

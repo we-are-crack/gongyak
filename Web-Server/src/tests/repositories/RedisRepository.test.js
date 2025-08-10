@@ -28,14 +28,25 @@ describe('RedisRepository', () => {
 
       const searchQuery = '청년 주거 정책';
       const embedding = new Float32Array(384).fill(0.5);
-      const htmlData = '<html><body>청년 주거 정책 내용</body></html>';
+      const data = JSON.stringify([
+        {
+          candidate: 'leejaemyung',
+          pledges: [
+            {
+              mainPledge: '주요 정책1',
+              sourceImage: '/images/leejaemyung1.png',
+              details: ['세부 정책 내용1', '세부 정책 내용2'],
+            },
+          ],
+        },
+      ]);
 
-      await RedisRepository.save(searchQuery, embedding, htmlData);
+      await RedisRepository.save(searchQuery, embedding, data);
 
       expect(client.hSet).toHaveBeenCalledWith(`doc:${searchQuery}`, {
         searchQuery,
         embedding: Buffer.from(embedding.buffer),
-        htmlData,
+        data,
       });
       expect(client.expire).toHaveBeenCalledWith(`doc:${searchQuery}`, 86400);
     });
@@ -46,9 +57,14 @@ describe('RedisRepository', () => {
 
       const searchQuery = '청년 주거 정책';
       const embedding = new Float32Array(384).fill(0.5);
-      const htmlData = '<html><body>청년 주거 정책 내용</body></html>';
+      const data = JSON.stringify([
+        {
+          candidate: 'leejaemyung',
+          pledges: [],
+        },
+      ]);
 
-      await expect(RedisRepository.save(searchQuery, embedding, htmlData)).rejects.toThrow('Redis 저장 오류');
+      await expect(RedisRepository.save(searchQuery, embedding, data)).rejects.toThrow('Redis 저장 오류');
     });
   });
 
@@ -56,13 +72,23 @@ describe('RedisRepository', () => {
     it('데이터가 존재하면 해당 데이터를 반환한다', async () => {
       client.hGetAll.mockResolvedValue({
         searchQuery: '청년 주거 정책',
-        htmlData: '<html><body>청년 주거 정책 내용</body></html>',
+        data: JSON.stringify([
+          {
+            candidate: 'leejaemyung',
+            pledges: [],
+          },
+        ]),
       });
 
       const result = await RedisRepository.findOne('청년 주거 정책');
       expect(result).toEqual({
         searchQuery: '청년 주거 정책',
-        htmlData: '<html><body>청년 주거 정책 내용</body></html>',
+        data: JSON.stringify([
+          {
+            candidate: 'leejaemyung',
+            pledges: [],
+          },
+        ]),
       });
     });
 

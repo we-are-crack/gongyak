@@ -11,7 +11,7 @@ const getEmbedding = async searchQuery => {
   }
 
   try {
-    const extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2');
+    const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
     const output = await extractor(searchQuery, {
       pooling: 'mean',
       normalize: false,

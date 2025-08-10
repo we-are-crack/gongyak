@@ -5,18 +5,26 @@ export default class RedisRepository {
    * 데이터 저장
    * @param {String} searchQuery - 검색어
    * @param {Float32Array} embedding - 384차원 벡터
-   * @param {String} htmlData - html 데이터
+   * @param {String} data - json 데이터
    */
-  static async save(searchQuery, embedding, htmlData) {
+  static async save(searchQuery, embedding, data) {
+    // Float32Array로 강제 변환
+    let vector = '';
+    if (!(embedding instanceof Float32Array)) {
+      vector = new Float32Array(embedding);
+    } else {
+      vector = embedding;
+    }
+
     try {
       const key = `doc:${searchQuery}`;
       await client.hSet(key, {
         searchQuery,
-        embedding: Buffer.from(embedding.buffer),
-        htmlData,
+        embedding: Buffer.from(vector.buffer),
+        data,
       });
 
-      const ttl = 86400; // 1일
+      const ttl = 43200; // 12시간
       await client.expire(key, ttl);
 
       console.log(`Redis에 데이터 저장 완료: ${searchQuery}`);
@@ -29,7 +37,7 @@ export default class RedisRepository {
   /**
    * 데이터 조회
    * @param {String} searchQuery - 검색어
-   * @returns {Object} - 검색어, html 데이터
+   * @returns {Object} - 검색어, 데이터
    */
   static async findOne(searchQuery) {
     try {
@@ -42,7 +50,7 @@ export default class RedisRepository {
 
       return {
         searchQuery: result.searchQuery,
-        htmlData: result.htmlData,
+        data: result.data,
       };
     } catch (error) {
       console.error('Redis 데이터 조회 오류:', error);
@@ -55,7 +63,7 @@ export default class RedisRepository {
    * @param {Number} limit - 조회할 결과 개수
    * @returns {Array} - {검색어, html 데이터} 리스트
    */
-  static async findSome(limit = 6) {
+  static async findSome(limit = 10) {
     try {
       let cursor = '0';
       let keys = [];
@@ -98,11 +106,19 @@ export default class RedisRepository {
    * @returns {Object} - 검색어, 점수
    */
   static async searchByVector(queryEmbedding) {
+    // Float32Array로 강제 변환
+    let vector = '';
+    if (!(queryEmbedding instanceof Float32Array)) {
+      vector = new Float32Array(queryEmbedding);
+    } else {
+      vector = queryEmbedding;
+    }
+
     try {
       const topK = 1; // 반환할 상위 결과 개수
       const indexName = 'vector_index';
       const vectorField = '@embedding';
-      const vertorData = Buffer.from(queryEmbedding.buffer);
+      const vertorData = Buffer.from(vector.buffer);
       const returnFields = ['searchQuery', 'score'];
       const dialectVersion = '2';
 
@@ -127,6 +143,7 @@ export default class RedisRepository {
 
       // 결과가 없으면 null 반환
       if (!result || result[0] === '0' || result.length <= 1) {
+        console.error('Redis 벡터 검색 결과 없음');
         return null;
       }
 

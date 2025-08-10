@@ -117,7 +117,7 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-#code convention
+# code convention
 .eslintrc.json
 .prettierrc.json
 .vscode
@@ -126,3 +126,6 @@ build/
 build-dev/
 build-prod/
 src/db/csv/
+
+# gcp
+google-cloud.json
